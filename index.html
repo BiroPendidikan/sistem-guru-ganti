@@ -6,6 +6,7 @@
   <title>Sistem Pengurusan Guru Ganti & Penjana Bahan KSSR</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -26,6 +27,10 @@
     .page.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
+    .btn-primary { transition: all 0.2s; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(26,74,245,0.4); }
+    .toast { animation: slideInRight 0.3s ease; }
+    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
   </style>
 </head>
 <body class="bg-gray-50 font-sans antialiased">
@@ -38,11 +43,12 @@
     <div><h1 class="font-extrabold text-white text-sm">Guru Ganti</h1><p class="text-blue-200 text-xs">KSSR 2017 Semakan</p></div>
   </div>
   <nav class="p-3 space-y-1">
-    <a onclick="navigateTo('dashboard')" data-page="dashboard" class="flex items-center gap-3 px-4 py-3 rounded-xl text-blue-100 hover:bg-white/10 hover:text-white transition cursor-pointer font-medium text-sm active:bg-white/20"><i class="fa-solid fa-grid-2 w-5"></i> Dashboard</a>
+    <a onclick="navigateTo('dashboard')" data-page="dashboard" class="flex items-center gap-3 px-4 py-3 rounded-xl text-blue-100 hover:bg-white/10 hover:text-white transition cursor-pointer font-medium text-sm"><i class="fa-solid fa-grid-2 w-5"></i> Dashboard</a>
     <a onclick="navigateTo('pengurusan')" data-page="pengurusan" class="flex items-center gap-3 px-4 py-3 rounded-xl text-blue-100 hover:bg-white/10 hover:text-white transition cursor-pointer font-medium text-sm"><i class="fa-solid fa-user-pen w-5"></i> Pengurusan Guru Ganti</a>
+    <a onclick="navigateTo('jadual')" data-page="jadual" class="flex items-center gap-3 px-4 py-3 rounded-xl text-blue-100 hover:bg-white/10 hover:text-white transition cursor-pointer font-medium text-sm"><i class="fa-solid fa-calendar-days w-5"></i> Jadual Waktu</a>
     <a onclick="navigateTo('penjana')" data-page="penjana" class="flex items-center gap-3 px-4 py-3 rounded-xl text-blue-100 hover:bg-white/10 hover:text-white transition cursor-pointer font-medium text-sm"><i class="fa-solid fa-robot w-5"></i> Penjana Bahan AI</a>
   </nav>
-  <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 text-center text-xs text-blue-300"><i class="fa-regular fa-copyright"></i> 2026 SK RC KUBONG • v1.0</div>
+  <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 text-center text-xs text-blue-300"><i class="fa-regular fa-copyright"></i> 2026 KPM • v2.0</div>
 </aside>
 
 <header class="lg:hidden fixed top-0 left-0 right-0 z-30 bg-white shadow-md h-16 flex items-center px-4 gap-3">
@@ -57,55 +63,100 @@
     <div id="page-dashboard" class="page active space-y-6">
       <div>
         <h2 class="text-2xl md:text-3xl font-extrabold text-gray-800"><i class="fa-solid fa-grid-2 text-brand-600 mr-2"></i>Dashboard</h2>
-        <p class="text-gray-500 text-sm mt-1">Ringkasan sistem pengurusan guru ganti & penjanaan bahan KSSR.</p>
+        <p class="text-gray-500 text-sm mt-1">Ringkasan & analisis mingguan.</p>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="stat-card bg-white rounded-2xl p-5 shadow-md border border-gray-100">
-          <div class="flex items-start gap-3"><div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-brand-600"><i class="fa-solid fa-user-check text-xl"></i></div><div><div class="text-2xl font-extrabold text-gray-800" id="statTotalGanti">0</div><div class="text-xs text-gray-500">Jumlah Guru Ganti</div></div></div>
-        </div>
-        <div class="stat-card bg-white rounded-2xl p-5 shadow-md border border-gray-100">
-          <div class="flex items-start gap-3"><div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"><i class="fa-solid fa-calendar-check text-xl"></i></div><div><div class="text-2xl font-extrabold text-gray-800" id="statHariIni">0</div><div class="text-xs text-gray-500">Tugasan Hari Ini</div></div></div>
-        </div>
-        <div class="stat-card bg-white rounded-2xl p-5 shadow-md border border-gray-100">
-          <div class="flex items-start gap-3"><div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600"><i class="fa-solid fa-robot text-xl"></i></div><div><div class="text-2xl font-extrabold text-gray-800" id="statBahanDijana">0</div><div class="text-xs text-gray-500">Bahan Dijana AI</div></div></div>
-        </div>
-        <div class="stat-card bg-white rounded-2xl p-5 shadow-md border border-gray-100">
-          <div class="flex items-start gap-3"><div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600"><i class="fa-solid fa-children text-xl"></i></div><div><div class="text-2xl font-extrabold text-gray-800" id="statKelasTerlibat">0</div><div class="text-xs text-gray-500">Kelas Terlibat</div></div></div>
-        </div>
+        <div class="stat-card bg-white rounded-2xl p-5 shadow-md border border-gray-100"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-brand-600"><i class="fa-solid fa-user-check text-xl"></i></div><div><div class="text-2xl font-extrabold text-gray-800" id="statTotalGanti">0</div><div class="text-xs text-gray-500">Jumlah Guru Ganti</div></div></div></div>
+        <div class="stat-card bg-white rounded-2xl p-5 shadow-md border border-gray-100"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"><i class="fa-solid fa-calendar-check text-xl"></i></div><div><div class="text-2xl font-extrabold text-gray-800" id="statHariIni">0</div><div class="text-xs text-gray-500">Tugasan Hari Ini</div></div></div></div>
+        <div class="stat-card bg-white rounded-2xl p-5 shadow-md border border-gray-100"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600"><i class="fa-solid fa-robot text-xl"></i></div><div><div class="text-2xl font-extrabold text-gray-800" id="statBahanDijana">0</div><div class="text-xs text-gray-500">Bahan Dijana AI</div></div></div></div>
+        <div class="stat-card bg-white rounded-2xl p-5 shadow-md border border-gray-100"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600"><i class="fa-solid fa-children text-xl"></i></div><div><div class="text-2xl font-extrabold text-gray-800" id="statKelasTerlibat">0</div><div class="text-xs text-gray-500">Kelas Terlibat</div></div></div></div>
       </div>
       <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-5">
-        <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-clock-rotate-left text-brand-600 mr-2"></i>5 Rekod Terkini</h3>
-        <div id="ringkasanTerkini" class="overflow-x-auto"></div>
+        <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-chart-bar text-brand-600 mr-2"></i>Analisis Mingguan</h3>
+        <div id="analisisMingguan" class="text-sm text-gray-600 space-y-2"></div>
       </div>
     </div>
 
-    <!-- PENGURUSAN GURU -->
+    <!-- PENGURUSAN GURU GANTI -->
     <div id="page-pengurusan" class="page space-y-6">
       <div>
         <h2 class="text-2xl md:text-3xl font-extrabold text-gray-800"><i class="fa-solid fa-user-pen text-brand-600 mr-2"></i>Pengurusan Guru Ganti</h2>
-        <p class="text-gray-500 text-sm mt-1">Daftar dan urus rekod guru tidak hadir serta guru ganti.</p>
+        <p class="text-gray-500 text-sm mt-1">Cari guru ganti berdasarkan jadual & masukkan rekod.</p>
       </div>
+      <!-- Pencari automatik -->
+      <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-5">
+        <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-magnifying-glass text-brand-600 mr-2"></i>Cari Guru Ganti</h3>
+        <div class="flex flex-wrap gap-3">
+          <select id="cariNamaGuru" class="px-4 py-2.5 rounded-xl border border-gray-200 bg-white flex-1 min-w-[200px]"><option value="">-- Pilih Guru Tidak Hadir --</option></select>
+          <select id="cariHari" class="px-4 py-2.5 rounded-xl border border-gray-200 bg-white"><option value="">Hari</option><option>Isnin</option><option>Selasa</option><option>Rabu</option><option>Khamis</option><option>Jumaat</option></select>
+          <button onclick="cariSlotKosong()" class="btn-primary bg-brand-600 hover:bg-brand-700 text-white font-semibold py-2.5 px-6 rounded-xl shadow-md"><i class="fa-solid fa-search"></i> Cari Slot</button>
+        </div>
+        <div id="hasilCarian" class="mt-4 space-y-3"></div>
+      </div>
+      <!-- Borang manual -->
       <form id="formGuruGanti" onsubmit="tambahRekod(event)" class="bg-white rounded-2xl shadow-md border border-gray-100 p-5">
         <h3 class="font-bold text-gray-700 mb-4"><i class="fa-solid fa-pen-to-square text-brand-600 mr-2"></i>Borang Pendaftaran</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><label class="block text-sm font-semibold text-gray-600 mb-1">Nama Guru Tidak Hadir</label><input type="text" id="guruTakHadir" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none" placeholder="Cth: Puan Aminah" required></div>
-          <div><label class="block text-sm font-semibold text-gray-600 mb-1">Nama Guru Ganti</label><input type="text" id="guruGanti" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none" placeholder="Cth: Encik Hafiz" required></div>
-          <div><label class="block text-sm font-semibold text-gray-600 mb-1">Kelas</label><input type="text" id="kelas" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none" placeholder="Cth: 4 Cemerlang" required></div>
-          <div><label class="block text-sm font-semibold text-gray-600 mb-1">Mata Pelajaran</label><select id="mataPelajaran" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none bg-white" required><option value="">-- Pilih --</option><option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option><option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>Pendidikan Jasmani & Kesihatan</option><option>Pendidikan Seni Visual</option><option>Pendidikan Muzik</option><option>Sejarah</option><option>RBT</option><option>TMK</option></select></div>
+          <div><label class="block text-sm font-semibold text-gray-600 mb-1">Nama Guru Tidak Hadir</label><input type="text" id="guruTakHadir" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none" required></div>
+          <div><label class="block text-sm font-semibold text-gray-600 mb-1">Slot Masa</label>
+            <select id="slotMasa" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none bg-white" required>
+              <option value="">-- Pilih Slot --</option>
+              <option value="7:20-7:50">7:20 - 7:50</option><option value="7:50-8:20">7:50 - 8:20</option>
+              <option value="8:20-8:50">8:20 - 8:50</option><option value="8:50-9:20">8:50 - 9:20</option>
+              <option value="9:20-9:50">9:20 - 9:50</option><option disabled>── Rehat 9:50-10:10 ──</option>
+              <option value="10:10-10:40">10:10 - 10:40</option><option value="10:40-11:10">10:40 - 11:10</option>
+              <option value="11:10-11:40">11:10 - 11:40</option><option value="11:40-12:10">11:40 - 12:10</option>
+              <option value="12:10-12:40">12:10 - 12:40</option><option value="12:40-1:10">12:40 - 1:10</option>
+            </select>
+          </div>
+          <div><label class="block text-sm font-semibold text-gray-600 mb-1">Nama Guru Ganti</label><input type="text" id="guruGanti" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none" required></div>
+          <div><label class="block text-sm font-semibold text-gray-600 mb-1">Kelas</label><input type="text" id="kelas" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none" required></div>
+          <div><label class="block text-sm font-semibold text-gray-600 mb-1">Mata Pelajaran</label>
+            <select id="mataPelajaran" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none bg-white" required>
+              <option value="">-- Pilih --</option><option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option><option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>Pendidikan Jasmani & Kesihatan</option><option>Pendidikan Seni Visual</option><option>Pendidikan Muzik</option><option>Sejarah</option><option>RBT</option><option>TMK</option>
+            </select>
+          </div>
         </div>
         <div class="mt-5 flex gap-3">
           <button type="submit" class="btn-primary bg-brand-600 hover:bg-brand-700 text-white font-semibold py-2.5 px-6 rounded-xl shadow-md flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Simpan Rekod</button>
           <button type="button" onclick="resetBorang()" class="py-2.5 px-5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 font-semibold flex items-center gap-2"><i class="fa-solid fa-rotate-left"></i> Set Semula</button>
         </div>
       </form>
+      <!-- Jadual rekod -->
       <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-5">
         <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h3 class="font-bold text-gray-700"><i class="fa-solid fa-table-list text-brand-600 mr-2"></i>Senarai Rekod</h3>
           <button onclick="eksportCSV()" class="text-sm py-1.5 px-4 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center gap-1"><i class="fa-solid fa-download"></i> Eksport CSV</button>
         </div>
         <div class="overflow-x-auto">
-          <table class="w-full text-sm"><thead class="bg-gray-50 text-gray-600 font-semibold"><tr><th class="p-3 text-left">#</th><th class="p-3 text-left">Guru Tidak Hadir</th><th class="p-3 text-left">Guru Ganti</th><th class="p-3 text-left">Kelas</th><th class="p-3 text-left">Mata Pelajaran</th><th class="p-3 text-left">Tarikh</th><th class="p-3 text-left">Tindakan</th></tr></thead><tbody id="tbodyRekod" class="divide-y divide-gray-100"></tbody></table>
+          <table class="w-full text-sm"><thead class="bg-gray-50 text-gray-600 font-semibold"><tr><th class="p-3">#</th><th class="p-3">Guru Tak Hadir</th><th class="p-3">Slot</th><th class="p-3">Guru Ganti</th><th class="p-3">Kelas</th><th class="p-3">MP</th><th class="p-3">Tarikh</th><th class="p-3">Tindakan</th></tr></thead><tbody id="tbodyRekod" class="divide-y divide-gray-100"></tbody></table>
         </div>
+      </div>
+    </div>
+
+    <!-- JADUAL WAKTU -->
+    <div id="page-jadual" class="page space-y-6">
+      <div>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-gray-800"><i class="fa-solid fa-calendar-days text-brand-600 mr-2"></i>Jadual Waktu Guru</h2>
+        <p class="text-gray-500 text-sm mt-1">Masukkan jadual setiap guru (manual atau CSV).</p>
+      </div>
+      <form id="formJadual" onsubmit="tambahJadual(event)" class="bg-white rounded-2xl shadow-md border border-gray-100 p-5">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div><label class="block text-sm font-semibold text-gray-600 mb-1">Nama Guru</label><input type="text" id="jadualNama" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none" required></div>
+          <div><label class="block text-sm font-semibold text-gray-600 mb-1">Hari</label><select id="jadualHari" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none bg-white" required><option value="">-- Pilih Hari --</option><option>Isnin</option><option>Selasa</option><option>Rabu</option><option>Khamis</option><option>Jumaat</option></select></div>
+          <div><label class="block text-sm font-semibold text-gray-600 mb-1">Slot Masa</label><select id="jadualSlot" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none bg-white" required><option value="">-- Pilih Slot --</option><option value="7:20-7:50">7:20 - 7:50</option><option value="7:50-8:20">7:50 - 8:20</option><option value="8:20-8:50">8:20 - 8:50</option><option value="8:50-9:20">8:50 - 9:20</option><option value="9:20-9:50">9:20 - 9:50</option><option disabled>── Rehat 9:50-10:10 ──</option><option value="10:10-10:40">10:10 - 10:40</option><option value="10:40-11:10">10:40 - 11:10</option><option value="11:10-11:40">11:10 - 11:40</option><option value="11:40-12:10">11:40 - 12:10</option><option value="12:10-12:40">12:10 - 12:40</option><option value="12:40-1:10">12:40 - 1:10</option></select></div>
+          <div><label class="block text-sm font-semibold text-gray-600 mb-1">Kelas</label><input type="text" id="jadualKelas" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none" required></div>
+          <div><label class="block text-sm font-semibold text-gray-600 mb-1">Mata Pelajaran</label><select id="jadualMP" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none bg-white" required><option value="">-- Pilih --</option><option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option><option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>Pendidikan Jasmani & Kesihatan</option><option>Pendidikan Seni Visual</option><option>Pendidikan Muzik</option><option>Sejarah</option><option>RBT</option><option>TMK</option></select></div>
+        </div>
+        <div class="mt-5 flex gap-3">
+          <button type="submit" class="btn-primary bg-brand-600 hover:bg-brand-700 text-white font-semibold py-2.5 px-6 rounded-xl shadow-md flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Tambah Jadual</button>
+          <button type="button" onclick="document.getElementById('csvFileInput').click()" class="py-2.5 px-5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 font-semibold flex items-center gap-2"><i class="fa-solid fa-file-csv"></i> Import CSV</button>
+          <input type="file" id="csvFileInput" accept=".csv" onchange="importCSV(event)" class="hidden">
+        </div>
+      </form>
+      <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-5">
+        <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-table-list text-brand-600 mr-2"></i>Senarai Jadual Guru</h3>
+        <div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-50 text-gray-600 font-semibold"><tr><th class="p-3">Nama Guru</th><th class="p-3">Hari</th><th class="p-3">Slot</th><th class="p-3">Kelas</th><th class="p-3">MP</th><th class="p-3"></th></tr></thead><tbody id="tbodyJadual"></tbody></table></div>
       </div>
     </div>
 
@@ -113,24 +164,24 @@
     <div id="page-penjana" class="page space-y-6">
       <div>
         <h2 class="text-2xl md:text-3xl font-extrabold text-gray-800"><i class="fa-solid fa-robot text-purple-600 mr-2"></i>Penjana Bahan AI KSSR</h2>
-        <p class="text-gray-500 text-sm mt-1">Jana bahan pengajaran KSSR 2017 Semakan menggunakan AI (DeepSeek).</p>
+        <p class="text-gray-500 text-sm mt-1">Jana RPH & lembaran kerja melalui DeepSeek AI.</p>
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-5">
-          <h3 class="font-bold text-gray-700 mb-4"><i class="fa-solid fa-sliders text-purple-600 mr-2"></i>Parameter Penjanaan</h3>
+          <h3 class="font-bold text-gray-700 mb-4"><i class="fa-solid fa-sliders text-purple-600 mr-2"></i>Parameter</h3>
           <form id="formPenjana" onsubmit="janaBahan(event)">
             <div class="space-y-4">
               <div><label class="block text-sm font-semibold text-gray-600 mb-1">Tahun</label><select id="tahun" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none bg-white" required><option value="">-- Pilih Tahun --</option><option>Tahun 1</option><option>Tahun 2</option><option>Tahun 3</option><option>Tahun 4</option><option>Tahun 5</option><option>Tahun 6</option></select></div>
-              <div><label class="block text-sm font-semibold text-gray-600 mb-1">Mata Pelajaran (KSSR 2017 Semakan)</label><select id="mpPenjana" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none bg-white" required><option value="">-- Pilih Mata Pelajaran --</option><option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option><option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>Pendidikan Jasmani & Kesihatan</option><option>Pendidikan Seni Visual</option><option>Pendidikan Muzik</option><option>Sejarah</option><option>RBT</option><option>TMK</option></select></div>
-              <div><label class="block text-sm font-semibold text-gray-600 mb-1">Topik / Standard Kandungan</label><input type="text" id="topik" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none" placeholder="Cth: Kata Adjektif, Pecahan, Sistem Suria..." required></div>
-              <div><label class="block text-sm font-semibold text-gray-600 mb-1">Butiran Tambahan</label><textarea id="butiranTambahan" rows="3" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none" placeholder="Cth: Sediakan lembaran kerja..."></textarea></div>
+              <div><label class="block text-sm font-semibold text-gray-600 mb-1">Mata Pelajaran</label><select id="mpPenjana" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none bg-white" required><option value="">-- Pilih --</option><option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option><option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>Pendidikan Jasmani & Kesihatan</option><option>Pendidikan Seni Visual</option><option>Pendidikan Muzik</option><option>Sejarah</option><option>RBT</option><option>TMK</option></select></div>
+              <div><label class="block text-sm font-semibold text-gray-600 mb-1">Topik</label><input type="text" id="topik" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none" placeholder="Cth: Pecahan" required></div>
+              <div><label class="block text-sm font-semibold text-gray-600 mb-1">Butiran Tambahan</label><textarea id="butiranTambahan" rows="3" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none" placeholder="Cth: lembaran kerja, aktiviti berkumpulan..."></textarea></div>
             </div>
             <button type="submit" class="btn-primary mt-5 w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl shadow-md flex items-center justify-center gap-2"><i class="fa-solid fa-wand-magic-sparkles"></i> Jana Bahan AI</button>
           </form>
         </div>
         <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-5 flex flex-col">
-          <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-file-lines text-emerald-600 mr-2"></i>Hasil Penjanaan AI</h3>
-          <div id="outputPenjana" class="flex-1 min-h-[300px] bg-gray-50 rounded-xl p-4 overflow-auto text-gray-700 text-sm border border-gray-100"><div class="text-center text-gray-400 py-12"><i class="fa-solid fa-sparkles text-3xl mb-2 block"></i><p>Hasil penjanaan akan dipaparkan di sini.</p></div></div>
+          <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-file-lines text-emerald-600 mr-2"></i>Hasil Penjanaan</h3>
+          <div id="outputPenjana" class="flex-1 min-h-[300px] bg-gray-50 rounded-xl p-4 overflow-auto text-gray-700 text-sm border border-gray-100"><div class="text-center text-gray-400 py-12"><i class="fa-solid fa-sparkles text-3xl mb-2 block"></i><p>Hasil akan dipaparkan di sini.</p></div></div>
           <div id="outputActions" class="mt-3 flex gap-2 hidden">
             <button onclick="salinOutput()" class="text-sm py-2 px-4 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center gap-1"><i class="fa-solid fa-copy"></i> Salin</button>
             <button onclick="muatTurunOutput()" class="text-sm py-2 px-4 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center gap-1"><i class="fa-solid fa-download"></i> Muat Turun TXT</button>
@@ -145,193 +196,351 @@
 <div id="toastContainer" class="fixed bottom-6 right-6 z-[100] space-y-2"></div>
 
 <script>
-  (function() {
-    // ---------- STATE ----------
-    const STORAGE_KEY = 'guruGantiRecords';
-    const COUNT_KEY = 'penjanaCount';
-    let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    let penjanaCount = parseInt(localStorage.getItem(COUNT_KEY) || '0');
+  // ==================== KONFIGURASI SUPABASE ====================
+  const SUPABASE_URL = 'https://ywmzcvdlscgeekucnnjp.supabase.co'; // GANTI
+  const SUPABASE_ANON_KEY = 'sb_publishable_BVFsMKlVHz2ZAXVBI0X5lw_18RRZb2m'; // GANTI
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let penjanaCount = parseInt(localStorage.getItem('penjanaCount') || '0');
 
+  // ==================== NAVIGASI ====================
+  window.navigateTo = function(pageName) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(`page-${pageName}`).classList.add('active');
+    document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('bg-white/15', 'text-white'));
+    const activeLink = document.querySelector(`.sidebar a[data-page="${pageName}"]`);
+    if (activeLink) activeLink.classList.add('bg-white/15', 'text-white');
+    if (window.innerWidth < 1024) closeSidebar();
+    if (pageName === 'dashboard') updateDashboard();
+    if (pageName === 'pengurusan') { updateCariGuruDropdown(); renderTable(); }
+    if (pageName === 'jadual') renderJadual();
+    window.scrollTo(0,0);
+  };
+
+  window.toggleSidebar = function() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar.classList.contains('open')) closeSidebar();
+    else { sidebar.classList.add('open'); overlay.classList.remove('hidden'); }
+  };
+  window.closeSidebar = function() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.add('hidden');
+  };
+
+  // ==================== TOAST ====================
+  function showToast(msg, type='info') {
+    const colors = { success: 'bg-emerald-600', error: 'bg-red-600', info: 'bg-brand-600' };
+    const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+    const toast = document.createElement('div');
+    toast.className = `toast ${colors[type]} text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium`;
+    toast.innerHTML = `<i class="fa-solid ${icons[type]}"></i> ${msg}`;
+    document.getElementById('toastContainer').appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+  }
+
+  function escapeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ==================== PENGURUSAN REKOD GURU GANTI ====================
+  async function fetchRecords() {
+    const { data, error } = await supabase.from('rekod_guru_ganti').select('*').order('id', { ascending: false });
+    if (error) { console.error(error); return []; }
+    return data;
+  }
+
+  async function renderTable() {
+    const records = await fetchRecords();
     const tbody = document.getElementById('tbodyRekod');
-    const toastContainer = document.getElementById('toastContainer');
-
-    // ---------- NAVIGATION ----------
-    window.navigateTo = function(pageName) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById(`page-${pageName}`).classList.add('active');
-      document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('bg-white/15', 'text-white'));
-      const activeLink = document.querySelector(`.sidebar a[data-page="${pageName}"]`);
-      if (activeLink) activeLink.classList.add('bg-white/15', 'text-white');
-      if (window.innerWidth < 1024) closeSidebar();
-      if (pageName === 'dashboard') { updateDashboard(); renderRingkasan(); }
-      if (pageName === 'pengurusan') renderTable();
-      window.scrollTo(0,0);
-    };
-
-    window.toggleSidebar = function() {
-      if (sidebar.classList.contains('open')) closeSidebar();
-      else { sidebar.classList.add('open'); overlay.classList.remove('hidden'); }
-    };
-    window.closeSidebar = function() {
-      sidebar.classList.remove('open');
-      overlay.classList.add('hidden');
-    };
-
-    // ---------- TOAST ----------
-    function showToast(msg, type='info') {
-      const colors = { success: 'bg-emerald-600', error: 'bg-red-600', info: 'bg-brand-600' };
-      const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
-      const toast = document.createElement('div');
-      toast.className = `toast ${colors[type]} text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium`;
-      toast.innerHTML = `<i class="fa-solid ${icons[type]}"></i> ${msg}`;
-      toastContainer.appendChild(toast);
-      setTimeout(() => toast.remove(), 3500);
+    if (records.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-gray-400">Tiada rekod.</td></tr>';
+      return;
     }
+    tbody.innerHTML = records.map((r, i) => `
+      <tr class="hover:bg-gray-50">
+        <td class="p-3 font-medium">${i+1}</td>
+        <td class="p-3 text-red-600 font-semibold">${escapeHTML(r.guru_tak_hadir)}</td>
+        <td class="p-3 text-indigo-700 font-medium">${r.slot_masa}</td>
+        <td class="p-3 text-emerald-600 font-semibold">${escapeHTML(r.guru_ganti)}</td>
+        <td class="p-3"><span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs font-semibold">${escapeHTML(r.kelas)}</span></td>
+        <td class="p-3">${escapeHTML(r.mata_pelajaran)}</td>
+        <td class="p-3 text-gray-500 text-xs">${r.tarikh}</td>
+        <td class="p-3 flex gap-1">
+          <button onclick="padamRekod(${r.id})" class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg"><i class="fa-solid fa-trash-can"></i></button>
+          <button onclick="janaBahanDariRekod('${r.kelas}','${r.mata_pelajaran}','${r.slot_masa}')" class="text-purple-600 hover:bg-purple-50 p-1.5 rounded-lg" title="Jana Bahan"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+        </td>
+      </tr>
+    `).join('');
+  }
 
-    // ---------- CRUD ----------
-    window.tambahRekod = function(e) {
-      e.preventDefault();
-      const guruTakHadir = document.getElementById('guruTakHadir').value.trim();
-      const guruGanti = document.getElementById('guruGanti').value.trim();
-      const kelas = document.getElementById('kelas').value.trim();
-      const mataPelajaran = document.getElementById('mataPelajaran').value;
-      if (!guruTakHadir || !guruGanti || !kelas || !mataPelajaran) return showToast('Lengkapkan semua ruangan.', 'error');
-      records.unshift({ id: Date.now(), guruTakHadir, guruGanti, kelas, mataPelajaran, tarikh: new Date().toISOString().split('T')[0] });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-      renderTable();
-      updateDashboard();
-      document.getElementById('formGuruGanti').reset();
-      showToast('Rekod disimpan!', 'success');
-    };
-
-    window.padamRekod = function(id) {
-      if (!confirm('Padam rekod ini?')) return;
-      records = records.filter(r => r.id !== id);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-      renderTable();
-      updateDashboard();
-      showToast('Rekod dipadam.', 'info');
-    };
-
-    window.resetBorang = function() { document.getElementById('formGuruGanti').reset(); };
-
-    function renderTable() {
-      if (!tbody) return;
-      if (records.length === 0) { tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-gray-400"><i class="fa-solid fa-folder-open text-2xl mb-2 block"></i>Tiada rekod.</td></tr>`; return; }
-      tbody.innerHTML = records.map((r, i) => `
-        <tr class="hover:bg-gray-50">
-          <td class="p-3 font-medium">${i+1}</td>
-          <td class="p-3 text-red-600 font-semibold">${escapeHTML(r.guruTakHadir)}</td>
-          <td class="p-3 text-emerald-600 font-semibold">${escapeHTML(r.guruGanti)}</td>
-          <td class="p-3"><span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs font-semibold">${escapeHTML(r.kelas)}</span></td>
-          <td class="p-3">${escapeHTML(r.mataPelajaran)}</td>
-          <td class="p-3 text-gray-500 text-xs">${r.tarikh}</td>
-          <td class="p-3"><button onclick="padamRekod(${r.id})" class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg"><i class="fa-solid fa-trash-can"></i></button></td>
-        </tr>`).join('');
+  window.tambahRekod = async function(e) {
+    e.preventDefault();
+    const guruTakHadir = document.getElementById('guruTakHadir').value.trim();
+    const slotMasa = document.getElementById('slotMasa').value;
+    const guruGanti = document.getElementById('guruGanti').value.trim();
+    const kelas = document.getElementById('kelas').value.trim();
+    const mataPelajaran = document.getElementById('mataPelajaran').value;
+    if (!guruTakHadir || !slotMasa || !guruGanti || !kelas || !mataPelajaran) {
+      showToast('Lengkapkan semua ruangan.', 'error');
+      return;
     }
-
-    function updateDashboard() {
-      document.getElementById('statTotalGanti').textContent = records.length;
-      document.getElementById('statHariIni').textContent = records.filter(r => r.tarikh === new Date().toISOString().split('T')[0]).length;
-      document.getElementById('statBahanDijana').textContent = penjanaCount;
-      document.getElementById('statKelasTerlibat').textContent = new Set(records.map(r => r.kelas.toLowerCase())).size;
+    // Cek pertindihan
+    const today = new Date().toISOString().split('T')[0];
+    const { data: existing } = await supabase.from('rekod_guru_ganti').select('*').eq('guru_ganti', guruGanti).eq('tarikh', today).eq('slot_masa', slotMasa);
+    if (existing && existing.length > 0) {
+      showToast('Guru ganti ini sudah mempunyai tugasan pada slot yang sama!', 'error');
+      return;
     }
-
-    function renderRingkasan() {
-      const container = document.getElementById('ringkasanTerkini');
-      if (!container) return;
-      const terkini = records.slice(0,5);
-      if (terkini.length === 0) { container.innerHTML = `<div class="text-center text-gray-400 py-6"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i>Tiada rekod.</div>`; return; }
-      container.innerHTML = `<table class="w-full text-sm"><thead class="bg-gray-50 text-gray-600"><tr><th class="p-2">#</th><th class="p-2">Tak Hadir</th><th class="p-2">Ganti</th><th class="p-2">Kelas</th><th class="p-2">MP</th></tr></thead><tbody class="divide-y divide-gray-100">${terkini.map((r,i) => `<tr><td class="p-2">${i+1}</td><td class="p-2 text-red-600">${escapeHTML(r.guruTakHadir)}</td><td class="p-2 text-emerald-600">${escapeHTML(r.guruGanti)}</td><td class="p-2">${r.kelas}</td><td class="p-2">${r.mataPelajaran}</td></tr>`).join('')}</tbody></table>`;
-    }
-
-    window.eksportCSV = function() {
-      if (records.length===0) return showToast('Tiada rekod.', 'error');
-      let csv = 'Bil,Guru Tidak Hadir,Guru Ganti,Kelas,Mata Pelajaran,Tarikh\n';
-      records.forEach((r,i) => csv += `${i+1},"${r.guruTakHadir}","${r.guruGanti}","${r.kelas}","${r.mataPelajaran}","${r.tarikh}"\n`);
-      const blob = new Blob(['\uFEFF'+csv], {type:'text/csv'});
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `rekod_guru_ganti_${new Date().toISOString().slice(0,10)}.csv`; a.click();
-    };
-
-    // ---------- AI GENERATION ----------
-    window.janaBahan = async function(e) {
-      e.preventDefault();
-      const tahun = document.getElementById('tahun').value;
-      const mp = document.getElementById('mpPenjana').value;
-      const topik = document.getElementById('topik').value.trim();
-      const butiran = document.getElementById('butiranTambahan').value.trim();
-      if (!tahun || !mp || !topik) return showToast('Lengkapkan Tahun, MP, dan Topik.', 'error');
-
-      const outputDiv = document.getElementById('outputPenjana');
-      const outputActions = document.getElementById('outputActions');
-      outputDiv.innerHTML = `<div class="text-center py-8"><div class="animate-spin inline-block w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full"></div><p class="mt-2 text-gray-500">Menjana melalui DeepSeek AI...</p></div>`;
-      outputActions.classList.add('hidden');
-
-      try {
-        const res = await fetch('https://penjana-kssr-proxy.juliansimonpeter.workers.dev/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tahun, mp, topik, butiran })
-        });
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-          throw new Error(errData.error || `Ralat ${res.status}`);
-        }
-        const data = await res.json();
-        if (data.error) throw new Error(data.error);
-        outputDiv.innerHTML = data.hasil.replace(/\n/g, '<br>');
-        outputActions.classList.remove('hidden');
-        penjanaCount++;
-        localStorage.setItem(COUNT_KEY, penjanaCount);
-        updateDashboard();
-        showToast('🤖 Bahan berjaya dijana!', 'success');
-      } catch (err) {
-        outputDiv.innerHTML = `<div class="text-red-600 text-center py-6"><i class="fa-solid fa-circle-exclamation text-2xl mb-2"></i><p>Ralat: ${escapeHTML(err.message)}</p></div>`;
-        outputActions.classList.add('hidden');
-        showToast('❌ Gagal menjana bahan.', 'error');
-      }
-    };
-
-    window.salinOutput = function() {
-      const text = document.getElementById('outputPenjana').innerText;
-      navigator.clipboard.writeText(text).then(() => showToast('Disalin!', 'success'));
-    };
-
-    // Fungsi muat turun yang telah diperbaiki
-    window.muatTurunOutput = function() {
-      const outputDiv = document.getElementById('outputPenjana');
-      if (!outputDiv) return;
-      let text = outputDiv.innerText || outputDiv.textContent || '';
-      if (!text.trim()) { showToast('Tiada kandungan untuk dimuat turun.', 'error'); return; }
-      const today = new Date().toLocaleString('ms-MY');
-      const header = `Bahan KSSR dijana pada ${today}\n${'─'.repeat(50)}\n\n`;
-      text = header + text;
-      const blob = new Blob(['\uFEFF' + text], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `bahan_kssr_${new Date().toISOString().slice(0,10)}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast('📥 Bahan berjaya dimuat turun!', 'success');
-    };
-
-    function escapeHTML(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
-
-    // Init
-    renderTable();
+    const { error } = await supabase.from('rekod_guru_ganti').insert([{ guru_tak_hadir: guruTakHadir, slot_masa: slotMasa, guru_ganti: guruGanti, kelas, mata_pelajaran: mataPelajaran, tarikh: today }]);
+    if (error) { showToast('Ralat simpan: ' + error.message, 'error'); return; }
+    document.getElementById('formGuruGanti').reset();
+    await renderTable();
     updateDashboard();
-    renderRingkasan();
+    showToast('Rekod disimpan!', 'success');
+  };
+
+  window.padamRekod = async function(id) {
+    if (!confirm('Padam rekod?')) return;
+    await supabase.from('rekod_guru_ganti').delete().eq('id', id);
+    await renderTable();
+    updateDashboard();
+    showToast('Rekod dipadam.', 'info');
+  };
+
+  window.resetBorang = function() { document.getElementById('formGuruGanti').reset(); };
+
+  window.eksportCSV = async function() {
+    const records = await fetchRecords();
+    if (records.length === 0) { showToast('Tiada rekod.', 'error'); return; }
+    let csv = 'Bil,Guru Tak Hadir,Slot Masa,Guru Ganti,Kelas,Mata Pelajaran,Tarikh\n';
+    records.forEach((r, i) => { csv += `${i+1},"${r.guru_tak_hadir}","${r.slot_masa}","${r.guru_ganti}","${r.kelas}","${r.mata_pelajaran}","${r.tarikh}"\n`; });
+    const blob = new Blob(['\uFEFF'+csv], {type:'text/csv'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `rekod_ganti_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  };
+
+  // ==================== JADUAL WAKTU ====================
+  async function fetchJadual() {
+    const { data, error } = await supabase.from('jadual_waktu').select('*').order('id');
+    if (error) { console.error(error); return []; }
+    return data;
+  }
+
+  async function renderJadual() {
+    const jadual = await fetchJadual();
+    const tbody = document.getElementById('tbodyJadual');
+    if (jadual.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Tiada jadual.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = jadual.map(j => `
+      <tr class="hover:bg-gray-50">
+        <td class="p-3">${escapeHTML(j.nama_guru)}</td>
+        <td class="p-3">${j.hari}</td>
+        <td class="p-3 text-indigo-700 font-medium">${j.slot_masa}</td>
+        <td class="p-3">${escapeHTML(j.kelas)}</td>
+        <td class="p-3">${j.mata_pelajaran}</td>
+        <td class="p-3"><button onclick="padamJadual(${j.id})" class="text-red-500 hover:bg-red-50 p-1 rounded-lg"><i class="fa-solid fa-trash"></i></button></td>
+      </tr>
+    `).join('');
+  }
+
+  window.tambahJadual = async function(e) {
+    e.preventDefault();
+    const nama = document.getElementById('jadualNama').value.trim();
+    const hari = document.getElementById('jadualHari').value;
+    const slot = document.getElementById('jadualSlot').value;
+    const kelas = document.getElementById('jadualKelas').value.trim();
+    const mp = document.getElementById('jadualMP').value;
+    if (!nama || !hari || !slot || !kelas || !mp) { showToast('Lengkapkan semua.', 'error'); return; }
+    const { error } = await supabase.from('jadual_waktu').insert([{ nama_guru: nama, hari, slot_masa: slot, kelas, mata_pelajaran: mp }]);
+    if (error) { showToast('Ralat: ' + error.message, 'error'); return; }
+    document.getElementById('formJadual').reset();
+    await renderJadual();
+    showToast('Jadual ditambah!', 'success');
+  };
+
+  window.padamJadual = async function(id) {
+    if (!confirm('Padam jadual?')) return;
+    await supabase.from('jadual_waktu').delete().eq('id', id);
+    await renderJadual();
+    showToast('Jadual dipadam.', 'info');
+  };
+
+  // Import CSV
+  window.importCSV = function(event) {
+    const file = event.target.files[0];
+    if (!file || !file.name.endsWith('.csv')) { showToast('Sila pilih fail CSV.', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const text = e.target.result;
+      const lines = text.split('\n').filter(line => line.trim() !== '');
+      if (lines.length < 2) { showToast('CSV kosong.', 'error'); return; }
+      const records = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(',').map(c => c.trim());
+        if (cols.length < 5) continue;
+        records.push({ nama_guru: cols[0], hari: cols[1], slot_masa: cols[2], kelas: cols[3], mata_pelajaran: cols[4] });
+      }
+      if (records.length === 0) { showToast('Tiada rekod sah.', 'error'); return; }
+      const { error } = await supabase.from('jadual_waktu').insert(records);
+      if (error) { showToast('Gagal import: ' + error.message, 'error'); return; }
+      await renderJadual();
+      showToast(`Berjaya import ${records.length} rekod!`, 'success');
+    };
+    reader.readAsText(file, 'UTF-8');
+  };
+
+  // ==================== CARIAN GURU GANTI ====================
+  async function updateCariGuruDropdown() {
+    const { data } = await supabase.from('jadual_waktu').select('nama_guru');
+    if (!data) return;
+    const unique = [...new Set(data.map(d => d.nama_guru))];
+    const select = document.getElementById('cariNamaGuru');
+    select.innerHTML = '<option value="">-- Pilih Guru Tidak Hadir --</option>' + unique.map(n => `<option>${n}</option>`).join('');
+  }
+
+  window.cariSlotKosong = async function() {
+    const guru = document.getElementById('cariNamaGuru').value;
+    const hari = document.getElementById('cariHari').value;
+    if (!guru || !hari) { showToast('Pilih guru dan hari.', 'error'); return; }
+    const { data: jadual } = await supabase.from('jadual_waktu').select('*');
+    // Slot yang diajar guru ini pada hari tersebut
+    const slotDiajar = jadual.filter(j => j.nama_guru === guru && j.hari === hari);
+    if (slotDiajar.length === 0) { document.getElementById('hasilCarian').innerHTML = '<p class="text-gray-500">Tiada kelas pada hari ini.</p>'; return; }
+    const semuaGuru = [...new Set(jadual.map(j => j.nama_guru))].filter(n => n !== guru);
+    const today = new Date().toISOString().split('T')[0];
+    const { data: rekodHariIni } = await supabase.from('rekod_guru_ganti').select('*').eq('tarikh', today);
+    let html = '';
+    for (const s of slotDiajar) {
+      const tersedia = semuaGuru.filter(nama => {
+        const adaJadualSendiri = jadual.some(j => j.nama_guru === nama && j.hari === hari && j.slot_masa === s.slot_masa);
+        const sudahAdaTugasan = rekodHariIni.some(r => r.guru_ganti === nama && r.slot_masa === s.slot_masa);
+        return !adaJadualSendiri && !sudahAdaTugasan;
+      });
+      html += `<div class="p-4 bg-gray-50 rounded-xl border"><p class="font-semibold">${s.slot_masa} - ${s.kelas} (${s.mata_pelajaran})</p>`;
+      if (tersedia.length === 0) {
+        html += '<p class="text-red-500 text-sm">⚠️ Tiada guru tersedia.</p>';
+      } else {
+        html += '<div class="flex flex-wrap gap-2 mt-2">';
+        tersedia.forEach(g => {
+          html += `<button onclick="pilihGuruGanti('${guru}','${hari}','${s.slot_masa}','${s.kelas}','${s.mata_pelajaran}','${g}')" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-100">${g}</button>`;
+        });
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+    document.getElementById('hasilCarian').innerHTML = html;
+  };
+
+  window.pilihGuruGanti = function(guruTakHadir, hari, slot, kelas, mp, guruGanti) {
+    document.getElementById('guruTakHadir').value = guruTakHadir;
+    document.getElementById('slotMasa').value = slot;
+    document.getElementById('guruGanti').value = guruGanti;
+    document.getElementById('kelas').value = kelas;
+    document.getElementById('mataPelajaran').value = mp;
+    showToast(`Guru ganti ${guruGanti} dipilih. Klik Simpan Rekod.`, 'success');
+  };
+
+  // ==================== PENJANA AI ====================
+  window.janaBahan = async function(e) {
+    e.preventDefault();
+    const tahun = document.getElementById('tahun').value;
+    const mp = document.getElementById('mpPenjana').value;
+    const topik = document.getElementById('topik').value.trim();
+    const butiran = document.getElementById('butiranTambahan').value.trim();
+    if (!tahun || !mp || !topik) { showToast('Lengkapkan Tahun, MP, Topik.', 'error'); return; }
+    const outputDiv = document.getElementById('outputPenjana');
+    const outputActions = document.getElementById('outputActions');
+    outputDiv.innerHTML = `<div class="text-center py-8"><div class="animate-spin inline-block w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full"></div><p class="mt-2 text-gray-500">Menjana melalui DeepSeek AI...</p></div>`;
+    outputActions.classList.add('hidden');
+    try {
+      const res = await fetch('https://penjana-kssr-proxy.juliansimonpeter.workers.dev/', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ tahun, mp, topik, butiran })
+      });
+      if (!res.ok) throw new Error('HTTP '+res.status);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      outputDiv.innerHTML = data.hasil.replace(/\n/g, '<br>');
+      outputActions.classList.remove('hidden');
+      penjanaCount++;
+      localStorage.setItem('penjanaCount', penjanaCount);
+      updateDashboard();
+      showToast('Bahan berjaya dijana!', 'success');
+    } catch (err) {
+      outputDiv.innerHTML = `<div class="text-red-600 text-center py-6">Ralat: ${escapeHTML(err.message)}</div>`;
+      outputActions.classList.add('hidden');
+      showToast('Gagal menjana bahan.', 'error');
+    }
+  };
+
+  window.janaBahanDariRekod = function(kelas, mp, slot) {
+    navigateTo('penjana');
+    setTimeout(() => {
+      document.getElementById('tahun').value = 'Tahun 4';
+      document.getElementById('mpPenjana').value = mp;
+      document.getElementById('topik').value = `Bahan untuk ${mp} (${slot})`;
+      document.getElementById('butiranTambahan').value = `Kelas: ${kelas}, Slot: ${slot}`;
+    }, 200);
+  };
+
+  window.salinOutput = function() {
+    const text = document.getElementById('outputPenjana').innerText;
+    navigator.clipboard.writeText(text).then(() => showToast('Disalin!', 'success'));
+  };
+
+  window.muatTurunOutput = function() {
+    const text = document.getElementById('outputPenjana').innerText;
+    if (!text.trim()) { showToast('Tiada kandungan.', 'error'); return; }
+    const blob = new Blob(['\uFEFF' + text], {type:'text/plain;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `bahan_kssr_${new Date().toISOString().slice(0,10)}.txt`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    showToast('Muat turun berjaya!', 'success');
+  };
+
+  // ==================== DASHBOARD ====================
+  async function updateDashboard() {
+    const { data: records } = await supabase.from('rekod_guru_ganti').select('*');
+    if (!records) return;
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('statTotalGanti').textContent = records.length;
+    document.getElementById('statHariIni').textContent = records.filter(r => r.tarikh === today).length;
+    document.getElementById('statKelasTerlibat').textContent = new Set(records.map(r => r.kelas.toLowerCase())).size;
+    document.getElementById('statBahanDijana').textContent = penjanaCount;
+    // Analisis mingguan
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const monday = new Date(now); monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
+    const friday = new Date(monday); friday.setDate(monday.getDate() + 4);
+    const mondayStr = monday.toISOString().split('T')[0], fridayStr = friday.toISOString().split('T')[0];
+    const thisWeek = records.filter(r => r.tarikh >= mondayStr && r.tarikh <= fridayStr);
+    const totalPossible = 5 * 11; // 5 hari x 11 slot
+    const percent = totalPossible ? Math.round((thisWeek.length / totalPossible) * 100) : 0;
+    const freq = {};
+    records.forEach(r => { freq[r.guru_tak_hadir] = (freq[r.guru_tak_hadir] || 0) + 1; });
+    const top = Object.entries(freq).sort((a,b) => b[1]-a[1])[0];
+    document.getElementById('analisisMingguan').innerHTML = `
+      <p>📅 Minggu: ${mondayStr} - ${fridayStr}</p>
+      <p>📊 Slot diganti: ${thisWeek.length} / ${totalPossible} (${percent}%)</p>
+      <p>🔁 Paling kerap tidak hadir: ${top ? top[0]+' ('+top[1]+' kali)' : 'Tiada'}</p>
+      <p>📌 Jumlah rekod: ${records.length}</p>
+    `;
+  }
+
+  // ==================== INIT ====================
+  async function init() {
+    await renderTable();
+    await renderJadual();
+    await updateDashboard();
+    await updateCariGuruDropdown();
     navigateTo('dashboard');
-  })();
+  }
+  init();
 </script>
 </body>
 </html>
