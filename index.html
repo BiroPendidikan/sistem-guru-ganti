@@ -33,7 +33,7 @@
   </nav>
   <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 text-center text-xs text-blue-300">
     <i class="fa-regular fa-copyright"></i> 2026 SK RC KUBONG<br>
-    <span class="text-[10px] text-blue-400">Pihak sekolah tidak bertanggungjawab atas sebarang kehilangan atau kerosakan.</span>
+    <span class="text-[10px] text-blue-400">Pihak sekolah tidak bertanggungjawab atas sebarang kehilangan atau kerosakan semasa penggunaan laman ini.</span>
   </div>
 </aside>
 
@@ -52,7 +52,10 @@
     <div id="page-dashboard" class="page active space-y-6">
       <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-grid-2 text-blue-600 mr-2"></i>Dashboard</h2>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="statCards"></div>
-      <div class="bg-white rounded-2xl shadow p-5"><h3 class="font-bold">Analisis Mingguan</h3><div id="analisisMingguan"></div></div>
+      <div class="bg-white rounded-2xl shadow p-5">
+        <h3 class="font-bold">Analisis Mingguan</h3>
+        <div id="analisisMingguan"></div>
+      </div>
     </div>
 
     <!-- Pengurusan Guru Ganti -->
@@ -143,7 +146,7 @@
       </div>
     </div>
 
-    <!-- Penjana AI (diperbaiki) -->
+    <!-- Penjana AI -->
     <div id="page-penjana" class="page space-y-6">
       <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-robot text-purple-600 mr-2"></i>Penjana Bahan AI</h2>
       <p class="text-gray-500 text-sm">Hasilkan RPH dan lembaran kerja berpandukan DSKP KSSR Semakan 2017.</p>
@@ -152,30 +155,10 @@
           <h3 class="font-bold mb-4">Parameter Penjanaan</h3>
           <form id="formPenjana" onsubmit="janaBahan(event)">
             <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-semibold">Tahun</label>
-                <select id="tahun" class="w-full px-4 py-2.5 rounded-xl border" required>
-                  <option value="">-- Pilih Tahun --</option>
-                  <option>Tahun 1</option><option>Tahun 2</option><option>Tahun 3</option><option>Tahun 4</option><option>Tahun 5</option><option>Tahun 6</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-sm font-semibold">Mata Pelajaran</label>
-                <select id="mpPenjana" class="w-full px-4 py-2.5 rounded-xl border" required>
-                  <option value="">-- Pilih --</option>
-                  <option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option><option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option><option>Seni Visual</option><option>Muzik</option><option>Sejarah</option><option>RBT</option><option>TMK</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-sm font-semibold">Standard Kandungan / Tajuk</label>
-                <input type="text" id="topik" class="w-full px-4 py-2.5 rounded-xl border" placeholder="Cth: 1.1 Mendengar dan Bertutur" required>
-                <p class="text-xs text-gray-400 mt-1">Rujuk DSKP untuk kod standard yang tepat.</p>
-              </div>
-              <div>
-                <label class="block text-sm font-semibold">Aktiviti / Langkah PdPC</label>
-                <textarea id="butiranTambahan" rows="3" class="w-full px-4 py-2.5 rounded-xl border" placeholder="Cth: 1. Murid berbincang dalam kumpulan. 2. Lembaran kerja. 3. Permainan kuiz."></textarea>
-                <p class="text-xs text-gray-400 mt-1">Huraikan aktiviti utama untuk membantu AI menjana bahan yang lebih tepat.</p>
-              </div>
+              <div><label class="block text-sm font-semibold">Tahun</label><select id="tahun" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Tahun --</option><option>Tahun 1</option><option>Tahun 2</option><option>Tahun 3</option><option>Tahun 4</option><option>Tahun 5</option><option>Tahun 6</option></select></div>
+              <div><label class="block text-sm font-semibold">Mata Pelajaran</label><select id="mpPenjana" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih --</option><option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option><option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option><option>Seni Visual</option><option>Muzik</option><option>Sejarah</option><option>RBT</option><option>TMK</option></select></div>
+              <div><label class="block text-sm font-semibold">Standard Kandungan / Tajuk</label><input type="text" id="topik" class="w-full px-4 py-2.5 rounded-xl border" placeholder="Cth: 1.1 Mendengar dan Bertutur" required><p class="text-xs text-gray-400 mt-1">Rujuk DSKP untuk kod standard yang tepat.</p></div>
+              <div><label class="block text-sm font-semibold">Aktiviti / Langkah PdPC</label><textarea id="butiranTambahan" rows="3" class="w-full px-4 py-2.5 rounded-xl border" placeholder="Cth: 1. Murid berbincang dalam kumpulan. 2. Lembaran kerja. 3. Permainan kuiz."></textarea><p class="text-xs text-gray-400 mt-1">Huraikan aktiviti utama untuk membantu AI menjana bahan yang lebih tepat.</p></div>
             </div>
             <button type="submit" class="bg-purple-600 text-white w-full py-3 rounded-xl font-semibold mt-5"><i class="fa-solid fa-wand-magic-sparkles"></i> Jana Bahan AI</button>
           </form>
@@ -406,7 +389,7 @@
     showToast(`Guru ganti ${guruGanti} dipilih. Klik Simpan.`, 'success');
   };
 
-  // Penjana AI (fungsi janabahan diubah suai sedikit agar prompt lebih kaya)
+  // Penjana AI
   window.janaBahan = async (e) => {
     e.preventDefault();
     const tahun = document.getElementById('tahun').value;
@@ -439,18 +422,14 @@
     }
   };
 
-  // Fungsi dari rekod: isi parameter dengan panduan, bukan semua automatik
-  window.janaBahanDariRekod = function(kelas, mp, slot) {
+  // Butang Jana dari rekod guru ganti (tidak ubah)
+  window.janaBahanDariRekod = (kelas, mp, slot) => {
     navigateTo('penjana');
     setTimeout(() => {
-      // Tetapkan tahun kepada pilihan pertama, biar pengguna ubah jika perlu
       document.getElementById('tahun').value = 'Tahun 4';
       document.getElementById('mpPenjana').value = mp;
-      // Topik dikosongkan supaya pengguna wajib isi standard kandungan yang spesifik
       document.getElementById('topik').value = '';
-      // Letakkan maklumat kelas dan slot di bahagian aktiviti sebagai cadangan
       document.getElementById('butiranTambahan').value = `[Kelas: ${kelas}, Slot: ${slot}] Sila nyatakan aktiviti dan langkah PdPC.`;
-      // Fokus pada input topik
       document.getElementById('topik').focus();
       showToast('Sila lengkapkan Standard Kandungan dan Aktiviti untuk janaan tepat.', 'info');
     }, 300);
@@ -464,36 +443,43 @@
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'bahan_kssr.txt'; a.click();
   };
 
-  // Dashboard
+  // ==================== DASHBOARD (DIUBAH) ====================
   async function updateDashboard() {
     if (!supabaseClient) return;
-    const { data } = await supabaseClient.from('rekod_guru_ganti').select('*');
-    if (!data) return;
+    const { data: records } = await supabaseClient.from('rekod_guru_ganti').select('*');
+    if (!records) return;
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('statCards').innerHTML = `
-      <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600"><i class="fa-solid fa-user-check text-xl"></i></div><div><div class="text-2xl font-extrabold">${data.length}</div><div class="text-xs text-gray-500">Jumlah Guru Ganti</div></div></div></div>
-      <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"><i class="fa-solid fa-calendar-check text-xl"></i></div><div><div class="text-2xl font-extrabold">${data.filter(r=>r.tarikh===today).length}</div><div class="text-xs text-gray-500">Tugasan Hari Ini</div></div></div></div>
+      <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600"><i class="fa-solid fa-user-check text-xl"></i></div><div><div class="text-2xl font-extrabold">${records.length}</div><div class="text-xs text-gray-500">Jumlah Guru Ganti</div></div></div></div>
+      <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"><i class="fa-solid fa-calendar-check text-xl"></i></div><div><div class="text-2xl font-extrabold">${records.filter(r=>r.tarikh===today).length}</div><div class="text-xs text-gray-500">Tugasan Hari Ini</div></div></div></div>
       <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600"><i class="fa-solid fa-robot text-xl"></i></div><div><div class="text-2xl font-extrabold">${penjanaCount}</div><div class="text-xs text-gray-500">Bahan Dijana AI</div></div></div></div>
-      <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600"><i class="fa-solid fa-children text-xl"></i></div><div><div class="text-2xl font-extrabold">${new Set(data.map(r=>r.kelas.toLowerCase())).size}</div><div class="text-xs text-gray-500">Kelas Terlibat</div></div></div></div>
+      <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600"><i class="fa-solid fa-children text-xl"></i></div><div><div class="text-2xl font-extrabold">${new Set(records.map(r=>r.kelas.toLowerCase())).size}</div><div class="text-xs text-gray-500">Kelas Terlibat</div></div></div></div>
     `;
     const now = new Date();
     const monday = new Date(now); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
     const friday = new Date(monday); friday.setDate(monday.getDate() + 4);
     const mondayStr = monday.toISOString().split('T')[0], fridayStr = friday.toISOString().split('T')[0];
-    const thisWeek = data.filter(r => r.tarikh >= mondayStr && r.tarikh <= fridayStr);
+    const thisWeek = records.filter(r => r.tarikh >= mondayStr && r.tarikh <= fridayStr);
     const totalPossible = 5 * 11;
     const percent = totalPossible ? Math.round((thisWeek.length / totalPossible) * 100) : 0;
-    const freq = {};
-    data.forEach(r => { freq[r.guru_tak_hadir] = (freq[r.guru_tak_hadir] || 0) + 1; });
-    const top = Object.entries(freq).sort((a,b) => b[1]-a[1])[0];
+
+    // --- PERUBAHAN DI SINI ---
+    const freqMP = {};
+    thisWeek.forEach(r => { freqMP[r.mata_pelajaran] = (freqMP[r.mata_pelajaran] || 0) + 1; });
+    const topMP = Object.entries(freqMP).sort((a,b) => b[1]-a[1])[0];
+    const currentYear = new Date().getFullYear();
+
     document.getElementById('analisisMingguan').innerHTML = `
       <p>📅 Minggu: ${mondayStr} - ${fridayStr}</p>
+      <p>📆 Tahun: ${currentYear}</p>
       <p>📊 Slot diganti: ${thisWeek.length} / ${totalPossible} (${percent}%)</p>
-      <p>🔁 Paling kerap tidak hadir: ${top ? top[0]+' ('+top[1]+' kali)' : 'Tiada'}</p>
-      <p>📌 Jumlah rekod: ${data.length}</p>
+      <p>📚 Mata pelajaran paling kerap diganti: ${topMP ? topMP[0]+' ('+topMP[1]+' kali)' : 'Tiada'}</p>
+      <p>📌 Jumlah rekod: ${records.length}</p>
     `;
+    // --- TAMAT PERUBAHAN ---
   }
 
+  // ==================== MULA ====================
   window.addEventListener('DOMContentLoaded', async () => {
     if (!supabaseClient) {
       showToast('Gagal menyambung ke pangkalan data.', 'error');
