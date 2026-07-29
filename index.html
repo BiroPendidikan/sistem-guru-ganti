@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistem Guru Ganti KSSR</title>
+  <title>eMMI | SK RC KUBONG</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -21,8 +21,8 @@
 
 <aside id="sidebar" class="sidebar fixed top-0 left-0 z-50 h-full w-64 bg-gradient-to-b from-slate-900 to-blue-900 text-white transform -translate-x-full lg:translate-x-0">
   <div class="p-5 border-b border-white/10">
-    <h1 class="font-extrabold">Guru Ganti</h1>
-    <p class="text-blue-200 text-xs">KSSR 2017 Semakan</p>
+    <h1 class="font-extrabold text-xl">eMMI</h1>
+    <p class="text-blue-200 text-xs mt-1 font-semibold">SK RC KUBONG @ 2026</p>
   </div>
   <nav class="p-3 space-y-1">
     <a onclick="navigateTo('dashboard')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-grid-2"></i> Dashboard</a>
@@ -30,125 +30,139 @@
     <a onclick="navigateTo('jadual')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-calendar-days"></i> Jadual Waktu</a>
     <a onclick="navigateTo('penjana')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-robot"></i> Penjana AI</a>
   </nav>
+  <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 text-center text-xs text-blue-300">
+    <i class="fa-regular fa-copyright"></i> 2026 SK RC KUBONG<br>
+    <span class="text-[10px] text-blue-400">Pihak sekolah tidak bertanggungjawab atas sebarang kehilangan atau kerosakan.</span>
+  </div>
 </aside>
 
 <header class="lg:hidden fixed top-0 left-0 right-0 bg-white shadow h-16 flex items-center px-4 z-30">
   <button onclick="toggleSidebar()" class="text-blue-900 p-2"><i class="fa-solid fa-bars text-xl"></i></button>
-  <span class="font-bold ml-2">Sistem Guru Ganti</span>
+  <div class="ml-2">
+    <span class="font-bold text-blue-900">eMMI</span>
+    <p class="text-xs text-gray-500">SK RC KUBONG @ 2026</p>
+  </div>
 </header>
 
-<main class="lg:ml-64 pt-16 lg:pt-0 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
-  <!-- Dashboard -->
-  <div id="page-dashboard" class="page active space-y-6">
-    <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-grid-2 text-blue-600 mr-2"></i>Dashboard</h2>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="statCards"></div>
-    <div class="bg-white rounded-2xl shadow p-5"><h3 class="font-bold">Analisis Mingguan</h3><div id="analisisMingguan"></div></div>
-  </div>
+<main class="lg:ml-64 pt-16 lg:pt-0 min-h-screen flex flex-col">
+  <div class="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
 
-  <!-- Pengurusan -->
-  <div id="page-pengurusan" class="page space-y-6">
-    <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-user-pen text-blue-600 mr-2"></i>Pengurusan Guru Ganti</h2>
-    <div class="bg-white rounded-2xl shadow p-5">
-      <h3 class="font-bold">Cari Guru Ganti</h3>
-      <div class="flex flex-wrap gap-3">
-        <select id="cariNamaGuru" class="px-4 py-2.5 rounded-xl border flex-1"><option value="">-- Pilih Guru Tidak Hadir --</option></select>
-        <select id="cariHari" class="px-4 py-2.5 rounded-xl border"><option value="">Hari</option><option>Isnin</option><option>Selasa</option><option>Rabu</option><option>Khamis</option><option>Jumaat</option></select>
-        <button onclick="cariSlotKosong()" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold">Cari Slot</button>
-      </div>
-      <div id="hasilCarian" class="mt-4 space-y-3"></div>
+    <!-- Dashboard -->
+    <div id="page-dashboard" class="page active space-y-6">
+      <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-grid-2 text-blue-600 mr-2"></i>Dashboard</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="statCards"></div>
+      <div class="bg-white rounded-2xl shadow p-5"><h3 class="font-bold">Analisis Mingguan</h3><div id="analisisMingguan"></div></div>
     </div>
-    <form id="formGuruGanti" onsubmit="tambahRekod(event)" class="bg-white rounded-2xl shadow p-5">
-      <h3 class="font-bold mb-4">Borang Pendaftaran</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label class="block text-sm font-semibold">Nama Guru Tidak Hadir</label><input type="text" id="guruTakHadir" class="w-full px-4 py-2.5 rounded-xl border" required></div>
-        <div><label class="block text-sm font-semibold">Slot Masa</label><select id="slotMasa" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Slot --</option><option value="7:20-7:50">7:20-7:50</option><option value="7:50-8:20">7:50-8:20</option><option value="8:20-8:50">8:20-8:50</option><option value="8:50-9:20">8:50-9:20</option><option value="9:20-9:50">9:20-9:50</option><option disabled>── Rehat 9:50-10:10 ──</option><option value="10:10-10:40">10:10-10:40</option><option value="10:40-11:10">10:40-11:10</option><option value="11:10-11:40">11:10-11:40</option><option value="11:40-12:10">11:40-12:10</option><option value="12:10-12:40">12:10-12:40</option><option value="12:40-1:10">12:40-1:10</option></select></div>
-        <div><label class="block text-sm font-semibold">Nama Guru Ganti</label><input type="text" id="guruGanti" class="w-full px-4 py-2.5 rounded-xl border" required></div>
-        <div><label class="block text-sm font-semibold">Kelas</label><input type="text" id="kelas" class="w-full px-4 py-2.5 rounded-xl border" required></div>
-        <div><label class="block text-sm font-semibold">Mata Pelajaran</label><select id="mataPelajaran" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih --</option><option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option><option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option><option>Seni Visual</option><option>Muzik</option><option>Sejarah</option><option>RBT</option><option>TMK</option></select></div>
-      </div>
-      <div class="mt-5 flex gap-3">
-        <button type="submit" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
-        <button type="button" onclick="resetBorang()" class="border px-5 py-2.5 rounded-xl">Set Semula</button>
-      </div>
-    </form>
-    <div class="bg-white rounded-2xl shadow p-5">
-      <h3 class="font-bold mb-2">Senarai Rekod</h3>
-      <button onclick="eksportCSV()" class="border px-4 py-1.5 rounded-lg text-sm mb-2"><i class="fa-solid fa-download"></i> Eksport CSV</button>
-      <div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3">#</th><th class="p-3">Guru Tak Hadir</th><th class="p-3">Slot</th><th class="p-3">Guru Ganti</th><th class="p-3">Kelas</th><th class="p-3">MP</th><th class="p-3">Tarikh</th><th class="p-3">Tindakan</th></tr></thead><tbody id="tbodyRekod"></tbody></table></div>
-    </div>
-  </div>
 
-  <!-- Jadual Waktu -->
-  <div id="page-jadual" class="page space-y-6">
-    <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-calendar-days text-blue-600 mr-2"></i>Jadual Waktu</h2>
-    <form id="formJadual" onsubmit="tambahJadual(event)" class="bg-white rounded-2xl shadow p-5">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div><label class="block text-sm font-semibold">Nama Guru</label><input type="text" id="jadualNama" class="w-full px-4 py-2.5 rounded-xl border" required></div>
-        <div><label class="block text-sm font-semibold">Hari</label><select id="jadualHari" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Hari --</option><option>Isnin</option><option>Selasa</option><option>Rabu</option><option>Khamis</option><option>Jumaat</option></select></div>
-        <div><label class="block text-sm font-semibold">Slot Masa</label><select id="jadualSlot" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Slot --</option><option value="7:20-7:50">7:20-7:50</option><option value="7:50-8:20">7:50-8:20</option><option value="8:20-8:50">8:20-8:50</option><option value="8:50-9:20">8:50-9:20</option><option value="9:20-9:50">9:20-9:50</option><option disabled>── Rehat 9:50-10:10 ──</option><option value="10:10-10:40">10:10-10:40</option><option value="10:40-11:10">10:40-11:10</option><option value="11:10-11:40">11:10-11:40</option><option value="11:40-12:10">11:40-12:10</option><option value="12:10-12:40">12:10-12:40</option><option value="12:40-1:10">12:40-1:10</option></select></div>
-        <div><label class="block text-sm font-semibold">Kelas</label><input type="text" id="jadualKelas" class="w-full px-4 py-2.5 rounded-xl border" required></div>
-        <div><label class="block text-sm font-semibold">Mata Pelajaran</label><select id="jadualMP" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih --</option><option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option><option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option><option>Seni Visual</option><option>Muzik</option><option>Sejarah</option><option>RBT</option><option>TMK</option></select></div>
-      </div>
-      <div class="mt-5 flex gap-3">
-        <button type="submit" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold"><i class="fa-solid fa-floppy-disk"></i> Tambah</button>
-        <button type="button" onclick="document.getElementById('csvFileInput').click()" class="border px-5 py-2.5 rounded-xl"><i class="fa-solid fa-file-csv"></i> Import CSV</button>
-        <input type="file" id="csvFileInput" accept=".csv" onchange="importCSV(event)" class="hidden">
-      </div>
-    </form>
-    <div class="bg-white rounded-2xl shadow p-5">
-      <h3 class="font-bold mb-2">Senarai Jadual</h3>
-      <div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3">Nama Guru</th><th class="p-3">Hari</th><th class="p-3">Slot</th><th class="p-3">Kelas</th><th class="p-3">MP</th><th class="p-3"></th></tr></thead><tbody id="tbodyJadual"></tbody></table></div>
-    </div>
-  </div>
-
-  <!-- Penjana AI -->
-  <div id="page-penjana" class="page space-y-6">
-    <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-robot text-purple-600 mr-2"></i>Penjana Bahan AI</h2>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Pengurusan Guru Ganti -->
+    <div id="page-pengurusan" class="page space-y-6">
+      <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-user-pen text-blue-600 mr-2"></i>Pengurusan Guru Ganti</h2>
       <div class="bg-white rounded-2xl shadow p-5">
-        <h3 class="font-bold mb-4">Parameter</h3>
-        <form id="formPenjana" onsubmit="janaBahan(event)">
-          <div class="space-y-4">
-            <div><label class="block text-sm font-semibold">Tahun</label><select id="tahun" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Tahun --</option><option>Tahun 1</option><option>Tahun 2</option><option>Tahun 3</option><option>Tahun 4</option><option>Tahun 5</option><option>Tahun 6</option></select></div>
-            <div><label class="block text-sm font-semibold">Mata Pelajaran</label><select id="mpPenjana" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih --</option><option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option><option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option><option>Seni Visual</option><option>Muzik</option><option>Sejarah</option><option>RBT</option><option>TMK</option></select></div>
-            <div><label class="block text-sm font-semibold">Topik</label><input type="text" id="topik" class="w-full px-4 py-2.5 rounded-xl border" placeholder="Cth: Pecahan" required></div>
-            <div><label class="block text-sm font-semibold">Butiran Tambahan</label><textarea id="butiranTambahan" rows="3" class="w-full px-4 py-2.5 rounded-xl border"></textarea></div>
-          </div>
-          <button type="submit" class="bg-purple-600 text-white w-full py-3 rounded-xl font-semibold mt-5"><i class="fa-solid fa-wand-magic-sparkles"></i> Jana Bahan AI</button>
-        </form>
+        <h3 class="font-bold">Cari Guru Ganti</h3>
+        <div class="flex flex-wrap gap-3">
+          <select id="cariNamaGuru" class="px-4 py-2.5 rounded-xl border flex-1"><option value="">-- Pilih Guru Tidak Hadir --</option></select>
+          <select id="cariHari" class="px-4 py-2.5 rounded-xl border"><option value="">Hari</option><option>Isnin</option><option>Selasa</option><option>Rabu</option><option>Khamis</option><option>Jumaat</option></select>
+          <button onclick="cariSlotKosong()" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold">Cari Slot</button>
+        </div>
+        <div id="hasilCarian" class="mt-4 space-y-3"></div>
       </div>
-      <div class="bg-white rounded-2xl shadow p-5 flex flex-col">
-        <h3 class="font-bold mb-3">Hasil Penjanaan</h3>
-        <div id="outputPenjana" class="flex-1 min-h-[300px] bg-gray-50 rounded-xl p-4 overflow-auto text-sm border"><div class="text-center text-gray-400 py-12"><i class="fa-solid fa-sparkles text-3xl mb-2 block"></i><p>Hasil akan dipaparkan di sini.</p></div></div>
-        <div id="outputActions" class="mt-3 flex gap-2 hidden">
-          <button onclick="salinOutput()" class="border px-4 py-2 rounded-lg text-sm"><i class="fa-solid fa-copy"></i> Salin</button>
-          <button onclick="muatTurunOutput()" class="border px-4 py-2 rounded-lg text-sm"><i class="fa-solid fa-download"></i> Muat Turun TXT</button>
+      <form id="formGuruGanti" onsubmit="tambahRekod(event)" class="bg-white rounded-2xl shadow p-5">
+        <h3 class="font-bold mb-4">Borang Pendaftaran</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label class="block text-sm font-semibold">Nama Guru Tidak Hadir</label><input type="text" id="guruTakHadir" class="w-full px-4 py-2.5 rounded-xl border" required></div>
+          <div><label class="block text-sm font-semibold">Slot Masa</label><select id="slotMasa" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Slot --</option><option value="7:20-7:50">7:20-7:50</option><option value="7:50-8:20">7:50-8:20</option><option value="8:20-8:50">8:20-8:50</option><option value="8:50-9:20">8:50-9:20</option><option value="9:20-9:50">9:20-9:50</option><option disabled>── Rehat 9:50-10:10 ──</option><option value="10:10-10:40">10:10-10:40</option><option value="10:40-11:10">10:40-11:10</option><option value="11:10-11:40">11:10-11:40</option><option value="11:40-12:10">11:40-12:10</option><option value="12:10-12:40">12:10-12:40</option><option value="12:40-1:10">12:40-1:10</option></select></div>
+          <div><label class="block text-sm font-semibold">Nama Guru Ganti</label><input type="text" id="guruGanti" class="w-full px-4 py-2.5 rounded-xl border" required></div>
+          <div><label class="block text-sm font-semibold">Kelas</label><input type="text" id="kelas" class="w-full px-4 py-2.5 rounded-xl border" required></div>
+          <div><label class="block text-sm font-semibold">Mata Pelajaran</label><select id="mataPelajaran" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih --</option><option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option><option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option><option>Seni Visual</option><option>Muzik</option><option>Sejarah</option><option>RBT</option><option>TMK</option></select></div>
+        </div>
+        <div class="mt-5 flex gap-3">
+          <button type="submit" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+          <button type="button" onclick="resetBorang()" class="border px-5 py-2.5 rounded-xl">Set Semula</button>
+        </div>
+      </form>
+      <div class="bg-white rounded-2xl shadow p-5">
+        <h3 class="font-bold mb-2">Senarai Rekod</h3>
+        <button onclick="eksportCSV()" class="border px-4 py-1.5 rounded-lg text-sm mb-2"><i class="fa-solid fa-download"></i> Eksport CSV</button>
+        <div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3">#</th><th class="p-3">Guru Tak Hadir</th><th class="p-3">Slot</th><th class="p-3">Guru Ganti</th><th class="p-3">Kelas</th><th class="p-3">MP</th><th class="p-3">Tarikh</th><th class="p-3">Tindakan</th></tr></thead><tbody id="tbodyRekod"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- Jadual Waktu -->
+    <div id="page-jadual" class="page space-y-6">
+      <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-calendar-days text-blue-600 mr-2"></i>Jadual Waktu</h2>
+      <form id="formJadual" onsubmit="tambahJadual(event)" class="bg-white rounded-2xl shadow p-5">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div><label class="block text-sm font-semibold">Nama Guru</label><input type="text" id="jadualNama" class="w-full px-4 py-2.5 rounded-xl border" required></div>
+          <div><label class="block text-sm font-semibold">Hari</label><select id="jadualHari" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Hari --</option><option>Isnin</option><option>Selasa</option><option>Rabu</option><option>Khamis</option><option>Jumaat</option></select></div>
+          <div><label class="block text-sm font-semibold">Slot Masa</label><select id="jadualSlot" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Slot --</option><option value="7:20-7:50">7:20-7:50</option><option value="7:50-8:20">7:50-8:20</option><option value="8:20-8:50">8:20-8:50</option><option value="8:50-9:20">8:50-9:20</option><option value="9:20-9:50">9:20-9:50</option><option disabled>── Rehat 9:50-10:10 ──</option><option value="10:10-10:40">10:10-10:40</option><option value="10:40-11:10">10:40-11:10</option><option value="11:10-11:40">11:10-11:40</option><option value="11:40-12:10">11:40-12:10</option><option value="12:10-12:40">12:10-12:40</option><option value="12:40-1:10">12:40-1:10</option></select></div>
+          <div><label class="block text-sm font-semibold">Kelas</label><input type="text" id="jadualKelas" class="w-full px-4 py-2.5 rounded-xl border" required></div>
+          <div><label class="block text-sm font-semibold">Mata Pelajaran</label><select id="jadualMP" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih --</option><option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option><option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option><option>Seni Visual</option><option>Muzik</option><option>Sejarah</option><option>RBT</option><option>TMK</option></select></div>
+        </div>
+        <div class="mt-5 flex gap-3">
+          <button type="submit" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold"><i class="fa-solid fa-floppy-disk"></i> Tambah</button>
+          <button type="button" onclick="document.getElementById('csvFileInput').click()" class="border px-5 py-2.5 rounded-xl"><i class="fa-solid fa-file-csv"></i> Import CSV</button>
+          <input type="file" id="csvFileInput" accept=".csv" onchange="importCSV(event)" class="hidden">
+        </div>
+      </form>
+      <div class="bg-white rounded-2xl shadow p-5">
+        <h3 class="font-bold mb-2">Senarai Jadual</h3>
+        <div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3">Nama Guru</th><th class="p-3">Hari</th><th class="p-3">Slot</th><th class="p-3">Kelas</th><th class="p-3">MP</th><th class="p-3"></th></tr></thead><tbody id="tbodyJadual"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- Penjana AI -->
+    <div id="page-penjana" class="page space-y-6">
+      <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-robot text-purple-600 mr-2"></i>Penjana Bahan AI</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl shadow p-5">
+          <h3 class="font-bold mb-4">Parameter</h3>
+          <form id="formPenjana" onsubmit="janaBahan(event)">
+            <div class="space-y-4">
+              <div><label class="block text-sm font-semibold">Tahun</label><select id="tahun" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Tahun --</option><option>Tahun 1</option><option>Tahun 2</option><option>Tahun 3</option><option>Tahun 4</option><option>Tahun 5</option><option>Tahun 6</option></select></div>
+              <div><label class="block text-sm font-semibold">Mata Pelajaran</label><select id="mpPenjana" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih --</option><option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option><option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option><option>Seni Visual</option><option>Muzik</option><option>Sejarah</option><option>RBT</option><option>TMK</option></select></div>
+              <div><label class="block text-sm font-semibold">Topik</label><input type="text" id="topik" class="w-full px-4 py-2.5 rounded-xl border" placeholder="Cth: Pecahan" required></div>
+              <div><label class="block text-sm font-semibold">Butiran Tambahan</label><textarea id="butiranTambahan" rows="3" class="w-full px-4 py-2.5 rounded-xl border"></textarea></div>
+            </div>
+            <button type="submit" class="bg-purple-600 text-white w-full py-3 rounded-xl font-semibold mt-5"><i class="fa-solid fa-wand-magic-sparkles"></i> Jana Bahan AI</button>
+          </form>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-5 flex flex-col">
+          <h3 class="font-bold mb-3">Hasil Penjanaan</h3>
+          <div id="outputPenjana" class="flex-1 min-h-[300px] bg-gray-50 rounded-xl p-4 overflow-auto text-sm border"><div class="text-center text-gray-400 py-12"><i class="fa-solid fa-sparkles text-3xl mb-2 block"></i><p>Hasil akan dipaparkan di sini.</p></div></div>
+          <div id="outputActions" class="mt-3 flex gap-2 hidden">
+            <button onclick="salinOutput()" class="border px-4 py-2 rounded-lg text-sm"><i class="fa-solid fa-copy"></i> Salin</button>
+            <button onclick="muatTurunOutput()" class="border px-4 py-2 rounded-lg text-sm"><i class="fa-solid fa-download"></i> Muat Turun TXT</button>
+          </div>
         </div>
       </div>
     </div>
+
+  </div>
+
+  <!-- Footer penafian -->
+  <div class="text-center text-xs text-gray-400 py-3 border-t border-gray-200 mt-6">
+    <i class="fa-solid fa-shield-halved mr-1"></i> Pihak sekolah tidak bertanggungjawab jika berlaku sebarang kehilangan dan kerosakan kerana penggunaan laman ini.
   </div>
 </main>
 
 <div id="toastContainer" class="fixed bottom-6 right-6 z-[100] space-y-2"></div>
 
 <script>
-  // ========== KONFIGURASI SUPABASE (GUNA NAMA UNIK) ==========
+  // ========== KONFIGURASI SUPABASE ==========
   const SUPABASE_URL = 'https://ywmzcvdlscgeekucnnjp.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3bXpjdmRsc2NnZWVrdWNubmpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Njc0NjYsImV4cCI6MjA5OTU0MzQ2Nn0.Qp7-fjkIN4ywuSY8LMOZJ5NG8DV5Eja3ak9L4oX103M';
 
-  // GUNA NAMA supabaseClient UNTUK ELAK KONFLIK
   let supabaseClient = null;
   try {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('Supabase berjaya disambungkan.');
+    console.log('✅ Supabase tersambung.');
   } catch (e) {
-    console.error('Supabase gagal dimulakan:', e);
-    alert('Gagal menyambung ke pangkalan data. Sila muat semula halaman.');
+    console.error('❌ Supabase gagal:', e);
   }
 
   let penjanaCount = parseInt(localStorage.getItem('penjanaCount') || '0');
 
-  // ========== NAVIGASI ==========
+  // Navigasi
   window.navigateTo = (page) => {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(`page-${page}`).classList.add('active');
@@ -166,7 +180,7 @@
     document.getElementById('sidebarOverlay').classList.add('hidden');
   };
 
-  // ========== TOAST ==========
+  // Toast
   function showToast(msg, type='info') {
     const colors = { success: 'bg-emerald-600', error: 'bg-red-600', info: 'bg-blue-600' };
     const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
@@ -178,7 +192,7 @@
   }
   function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-  // ========== REKOD GURU GANTI ==========
+  // Rekod guru ganti
   async function renderTable() {
     if (!supabaseClient) return;
     const { data, error } = await supabaseClient.from('rekod_guru_ganti').select('*').order('id', { ascending: false });
@@ -209,12 +223,7 @@
     showToast('Rekod disimpan!', 'success');
   };
 
-  window.padamRekod = async (id) => {
-    if (!supabaseClient) return;
-    await supabaseClient.from('rekod_guru_ganti').delete().eq('id', id);
-    renderTable(); updateDashboard();
-    showToast('Rekod dipadam.', 'info');
-  };
+  window.padamRekod = async (id) => { if (!supabaseClient) return; await supabaseClient.from('rekod_guru_ganti').delete().eq('id', id); renderTable(); updateDashboard(); };
   window.resetBorang = () => document.getElementById('formGuruGanti').reset();
   window.eksportCSV = async () => {
     if (!supabaseClient) return;
@@ -226,7 +235,7 @@
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'rekod_ganti.csv'; a.click();
   };
 
-  // ========== JADUAL WAKTU ==========
+  // Jadual waktu
   async function renderJadual() {
     if (!supabaseClient) return;
     const { data } = await supabaseClient.from('jadual_waktu').select('*').order('id');
@@ -249,12 +258,7 @@
     renderJadual();
     showToast('Jadual ditambah!', 'success');
   };
-  window.padamJadual = async (id) => {
-    if (!supabaseClient) return;
-    await supabaseClient.from('jadual_waktu').delete().eq('id', id);
-    renderJadual();
-    showToast('Jadual dipadam.', 'info');
-  };
+  window.padamJadual = async (id) => { if (!supabaseClient) return; await supabaseClient.from('jadual_waktu').delete().eq('id', id); renderJadual(); };
   window.importCSV = (event) => {
     if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
     const file = event.target.files[0];
@@ -276,7 +280,7 @@
     reader.readAsText(file);
   };
 
-  // ========== CARIAN GURU GANTI ==========
+  // Carian guru ganti
   async function updateCariGuruDropdown() {
     if (!supabaseClient) return;
     const { data } = await supabaseClient.from('jadual_waktu').select('nama_guru');
@@ -313,7 +317,7 @@
     showToast(`Guru ganti ${guruGanti} dipilih. Klik Simpan.`, 'success');
   };
 
-  // ========== PENJANA AI ==========
+  // Penjana AI
   window.janaBahan = async (e) => {
     e.preventDefault();
     const tahun = document.getElementById('tahun').value;
@@ -353,7 +357,7 @@
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'bahan_kssr.txt'; a.click();
   };
 
-  // ========== DASHBOARD ==========
+  // Dashboard
   async function updateDashboard() {
     if (!supabaseClient) return;
     const { data } = await supabaseClient.from('rekod_guru_ganti').select('*');
@@ -383,10 +387,9 @@
     `;
   }
 
-  // ========== MULA ==========
   window.addEventListener('DOMContentLoaded', async () => {
     if (!supabaseClient) {
-      showToast('Gagal menyambung ke pangkalan data. Sila muat semula halaman.', 'error');
+      showToast('Gagal menyambung ke pangkalan data.', 'error');
       return;
     }
     await renderTable();
