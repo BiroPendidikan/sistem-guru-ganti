@@ -56,6 +56,11 @@
         <h3 class="font-bold">Analisis Mingguan</h3>
         <div id="analisisMingguan"></div>
       </div>
+      <!-- Indikator Pemakluman Guru Ganti Hari Ini -->
+      <div class="bg-white rounded-2xl shadow p-5">
+        <h3 class="font-bold mb-3"><i class="fa-solid fa-bullhorn text-blue-600 mr-2"></i>Pemakluman Tugasan Guru Ganti Hari Ini</h3>
+        <div id="pemaklumanGuruGanti"></div>
+      </div>
     </div>
 
     <!-- Pengurusan Guru Ganti -->
@@ -422,7 +427,6 @@
     }
   };
 
-  // Butang Jana dari rekod guru ganti (tidak ubah)
   window.janaBahanDariRekod = (kelas, mp, slot) => {
     navigateTo('penjana');
     setTimeout(() => {
@@ -443,18 +447,22 @@
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'bahan_kssr.txt'; a.click();
   };
 
-  // ==================== DASHBOARD (DIUBAH) ====================
+  // ==================== DASHBOARD (DENGAN PEMAKLUMAN) ====================
   async function updateDashboard() {
     if (!supabaseClient) return;
     const { data: records } = await supabaseClient.from('rekod_guru_ganti').select('*');
     if (!records) return;
     const today = new Date().toISOString().split('T')[0];
+    
+    // Kad statistik
     document.getElementById('statCards').innerHTML = `
       <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600"><i class="fa-solid fa-user-check text-xl"></i></div><div><div class="text-2xl font-extrabold">${records.length}</div><div class="text-xs text-gray-500">Jumlah Guru Ganti</div></div></div></div>
       <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"><i class="fa-solid fa-calendar-check text-xl"></i></div><div><div class="text-2xl font-extrabold">${records.filter(r=>r.tarikh===today).length}</div><div class="text-xs text-gray-500">Tugasan Hari Ini</div></div></div></div>
       <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600"><i class="fa-solid fa-robot text-xl"></i></div><div><div class="text-2xl font-extrabold">${penjanaCount}</div><div class="text-xs text-gray-500">Bahan Dijana AI</div></div></div></div>
       <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600"><i class="fa-solid fa-children text-xl"></i></div><div><div class="text-2xl font-extrabold">${new Set(records.map(r=>r.kelas.toLowerCase())).size}</div><div class="text-xs text-gray-500">Kelas Terlibat</div></div></div></div>
     `;
+
+    // Analisis mingguan
     const now = new Date();
     const monday = new Date(now); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
     const friday = new Date(monday); friday.setDate(monday.getDate() + 4);
@@ -462,8 +470,6 @@
     const thisWeek = records.filter(r => r.tarikh >= mondayStr && r.tarikh <= fridayStr);
     const totalPossible = 5 * 11;
     const percent = totalPossible ? Math.round((thisWeek.length / totalPossible) * 100) : 0;
-
-    // --- PERUBAHAN DI SINI ---
     const freqMP = {};
     thisWeek.forEach(r => { freqMP[r.mata_pelajaran] = (freqMP[r.mata_pelajaran] || 0) + 1; });
     const topMP = Object.entries(freqMP).sort((a,b) => b[1]-a[1])[0];
@@ -476,10 +482,42 @@
       <p>📚 Mata pelajaran paling kerap diganti: ${topMP ? topMP[0]+' ('+topMP[1]+' kali)' : 'Tiada'}</p>
       <p>📌 Jumlah rekod: ${records.length}</p>
     `;
-    // --- TAMAT PERUBAHAN ---
+
+    // --- PEMAKLUMAN HARI INI ---
+    const todayRecords = records.filter(r => r.tarikh === today);
+    const pemaklumanDiv = document.getElementById('pemaklumanGuruGanti');
+    if (!pemaklumanDiv) return;
+
+    if (todayRecords.length === 0) {
+      pemaklumanDiv.innerHTML = '<p class="text-gray-500 text-sm">Tiada tugasan guru ganti untuk hari ini.</p>';
+    } else {
+      // Isih mengikut slot masa (boleh ikut urutan asal)
+      const slotOrder = ["7:20-7:50","7:50-8:20","8:20-8:50","8:50-9:20","9:20-9:50","10:10-10:40","10:40-11:10","11:10-11:40","11:40-12:10","12:10-12:40","12:40-1:10"];
+      todayRecords.sort((a, b) => slotOrder.indexOf(a.slot_masa) - slotOrder.indexOf(b.slot_masa));
+
+      let html = '<div class="space-y-2">';
+      todayRecords.forEach(rec => {
+        html += `
+          <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg text-sm">
+            <div>
+              <span class="font-semibold text-blue-700">${esc(rec.guru_ganti)}</span>
+              <span class="text-gray-500 mx-2">|</span>
+              <span class="text-indigo-600">${rec.slot_masa}</span>
+              <span class="text-gray-500 mx-2">|</span>
+              <span>${esc(rec.kelas)}</span>
+              <span class="text-gray-500 mx-2">|</span>
+              <span>${esc(rec.mata_pelajaran)}</span>
+            </div>
+            <span class="text-xs text-gray-400">${rec.tarikh}</span>
+          </div>
+        `;
+      });
+      html += '</div>';
+      pemaklumanDiv.innerHTML = html;
+    }
   }
 
-  // ==================== MULA ====================
+  // Mula
   window.addEventListener('DOMContentLoaded', async () => {
     if (!supabaseClient) {
       showToast('Gagal menyambung ke pangkalan data.', 'error');
