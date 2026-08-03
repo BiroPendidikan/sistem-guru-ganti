@@ -143,7 +143,6 @@
       <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-calendar-days text-blue-600 mr-2"></i>Jadual Waktu</h2>
       <form id="formJadual" onsubmit="tambahJadual(event)" class="bg-white rounded-2xl shadow p-5">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <!-- ========== DIUBAH: Nama Guru menjadi dropdown ========== -->
           <div>
             <label class="block text-sm font-semibold">Nama Guru</label>
             <select id="jadualNama" class="w-full px-4 py-2.5 rounded-xl border" required>
@@ -162,7 +161,6 @@
               <option>NORAMA ANAK BUNJOK</option>
             </select>
           </div>
-          <!-- ========== TAMAT PERUBAHAN ========== -->
           <div><label class="block text-sm font-semibold">Hari</label><select id="jadualHari" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Hari --</option><option>Isnin</option><option>Selasa</option><option>Rabu</option><option>Khamis</option><option>Jumaat</option></select></div>
           <div><label class="block text-sm font-semibold">Slot Masa</label><select id="jadualSlot" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Slot --</option><option value="7:20-7:50">7:20-7:50</option><option value="7:50-8:20">7:50-8:20</option><option value="8:20-8:50">8:20-8:50</option><option value="8:50-9:20">8:50-9:20</option><option value="9:20-9:50">9:20-9:50</option><option disabled>── Rehat 9:50-10:10 ──</option><option value="10:10-10:40">10:10-10:40</option><option value="10:40-11:10">10:40-11:10</option><option value="11:10-11:40">11:10-11:40</option><option value="11:40-12:10">11:40-12:10</option><option value="12:10-12:40">12:10-12:40</option><option value="12:40-1:10">12:40-1:10</option></select></div>
           <div>
@@ -251,6 +249,7 @@
   }
 
   let penjanaCount = parseInt(localStorage.getItem('penjanaCount') || '0');
+  let cachedJadual = [];
 
   // Navigasi
   window.navigateTo = (page) => {
@@ -282,29 +281,63 @@
   }
   function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-  // Fungsi auto isi dropdown guru ganti
+  // Auto isi dropdown guru ganti + auto isi kelas & MP
   async function updateGuruGantiDropdown() {
     const hari = document.getElementById('hariGanti').value;
     const slot = document.getElementById('slotMasa').value;
     const selectGuru = document.getElementById('guruGanti');
+
     if (!hari || !slot) {
       selectGuru.innerHTML = '<option value="">-- Pilih Slot & Hari Dahulu --</option>';
       return;
     }
+
     if (!supabaseClient) return;
+
     const [{ data: jadual }, { data: rekodHariIni }] = await Promise.all([
       supabaseClient.from('jadual_waktu').select('*'),
       supabaseClient.from('rekod_guru_ganti').select('*').eq('tarikh', new Date().toISOString().split('T')[0])
     ]);
-    const semuaGuru = [...new Set(jadual.map(j => j.nama_guru))];
+
+    // ✅ SIMPAN CACHE
+    cachedJadual = jadual || [];
+
+    // Isi dropdown guru ganti
+    const semuaGuru = [...new Set(cachedJadual.map(j => j.nama_guru))];
     const tersedia = semuaGuru.filter(nama => {
-      const adaPdPC = jadual.some(j => j.nama_guru === nama && j.hari === hari && j.slot_masa === slot);
+      const adaPdPC = cachedJadual.some(j => j.nama_guru === nama && j.hari === hari && j.slot_masa === slot);
       const sudahTugasGanti = rekodHariIni.some(r => r.guru_ganti === nama && r.slot_masa === slot);
       return !adaPdPC && !sudahTugasGanti;
     });
-    selectGuru.innerHTML = tersedia.length === 0 
+
+    selectGuru.innerHTML = tersedia.length === 0
       ? '<option value="">⚠️ Tiada guru tersedia</option>'
       : '<option value="">-- Pilih Guru Ganti --</option>' + tersedia.map(n => `<option>${n}</option>`).join('');
+
+    // ✅ PANGGIL AUTO-FILL SELEPAS CACHE SIAP
+    autoFillKelasMP();
+  }
+
+  // Auto isi Kelas & MP berdasarkan nama guru tidak hadir + hari + slot
+  function autoFillKelasMP() {
+    const nama = document.getElementById('guruTakHadir').value.trim();
+    const hari = document.getElementById('hariGanti').value;
+    const slot = document.getElementById('slotMasa').value;
+    const kelasSelect = document.getElementById('kelas');
+    const mpSelect = document.getElementById('mataPelajaran');
+
+    if (!nama || !hari || !slot || cachedJadual.length === 0) return;
+
+    const match = cachedJadual.find(j =>
+      j.nama_guru.toLowerCase() === nama.toLowerCase() &&
+      j.hari === hari &&
+      j.slot_masa === slot
+    );
+
+    if (match) {
+      kelasSelect.value = match.kelas;
+      mpSelect.value = match.mata_pelajaran;
+    }
   }
 
   // Rekod guru ganti
@@ -368,7 +401,7 @@
   window.tambahJadual = async (e) => {
     e.preventDefault();
     if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
-    const nama = document.getElementById('jadualNama').value; // dropdown value (huruf besar)
+    const nama = document.getElementById('jadualNama').value;
     const hari = document.getElementById('jadualHari').value;
     const slot = document.getElementById('jadualSlot').value;
     const kelas = document.getElementById('jadualKelas').value;
