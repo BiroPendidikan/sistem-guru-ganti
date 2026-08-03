@@ -33,7 +33,7 @@
   </nav>
   <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 text-center text-xs text-blue-300">
     <i class="fa-regular fa-copyright"></i> 2026 SK RC KUBONG<br>
-    <span class="text-[10px] text-blue-400">Pihak sekolah tidak bertanggungjawab atas sebarang kehilangan atau kerosakan semasa penggunaan laman ini.</span>
+    <span class="text-[10px] text-blue-400">Pihak sekolah tidak bertanggungjawab atas sebarang kehilangan atau kerosakan.</span>
   </div>
 </aside>
 
@@ -56,7 +56,6 @@
         <h3 class="font-bold">Analisis Mingguan</h3>
         <div id="analisisMingguan"></div>
       </div>
-      <!-- Indikator Pemakluman Guru Ganti Hari Ini -->
       <div class="bg-white rounded-2xl shadow p-5">
         <h3 class="font-bold mb-3"><i class="fa-solid fa-bullhorn text-blue-600 mr-2"></i>Pemakluman Tugasan Guru Ganti Hari Ini</h3>
         <div id="pemaklumanGuruGanti"></div>
@@ -111,7 +110,11 @@
           <div><label class="block text-sm font-semibold">Kelas</label><input type="text" id="kelas" class="w-full px-4 py-2.5 rounded-xl border" required></div>
           <div><label class="block text-sm font-semibold">Mata Pelajaran</label>
             <select id="mataPelajaran" class="w-full px-4 py-2.5 rounded-xl border" required>
-              <option value="">-- Pilih --</option><option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option><option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option><option>Seni Visual</option><option>Muzik</option><option>Sejarah</option><option>RBT</option><option>TMK</option>
+              <option value="">-- Pilih --</option>
+              <option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option>
+              <option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option>
+              <option>Seni Visual</option><option>Muzik</option><option>Sejarah</option>
+              <option>RBT</option><option>TMK</option><option>Bahasa Iban</option>
             </select>
           </div>
         </div>
@@ -137,7 +140,13 @@
           <div><label class="block text-sm font-semibold">Hari</label><select id="jadualHari" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Hari --</option><option>Isnin</option><option>Selasa</option><option>Rabu</option><option>Khamis</option><option>Jumaat</option></select></div>
           <div><label class="block text-sm font-semibold">Slot Masa</label><select id="jadualSlot" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Slot --</option><option value="7:20-7:50">7:20-7:50</option><option value="7:50-8:20">7:50-8:20</option><option value="8:20-8:50">8:20-8:50</option><option value="8:50-9:20">8:50-9:20</option><option value="9:20-9:50">9:20-9:50</option><option disabled>── Rehat 9:50-10:10 ──</option><option value="10:10-10:40">10:10-10:40</option><option value="10:40-11:10">10:40-11:10</option><option value="11:10-11:40">11:10-11:40</option><option value="11:40-12:10">11:40-12:10</option><option value="12:10-12:40">12:10-12:40</option><option value="12:40-1:10">12:40-1:10</option></select></div>
           <div><label class="block text-sm font-semibold">Kelas</label><input type="text" id="jadualKelas" class="w-full px-4 py-2.5 rounded-xl border" required></div>
-          <div><label class="block text-sm font-semibold">Mata Pelajaran</label><select id="jadualMP" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih --</option><option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option><option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option><option>Seni Visual</option><option>Muzik</option><option>Sejarah</option><option>RBT</option><option>TMK</option></select></div>
+          <div><label class="block text-sm font-semibold">Mata Pelajaran</label><select id="jadualMP" class="w-full px-4 py-2.5 rounded-xl border" required>
+            <option value="">-- Pilih --</option>
+            <option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option>
+            <option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option>
+            <option>Seni Visual</option><option>Muzik</option><option>Sejarah</option>
+            <option>RBT</option><option>TMK</option><option>Bahasa Iban</option>
+          </select></div>
         </div>
         <div class="mt-5 flex gap-3">
           <button type="submit" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold"><i class="fa-solid fa-floppy-disk"></i> Tambah</button>
@@ -161,7 +170,13 @@
           <form id="formPenjana" onsubmit="janaBahan(event)">
             <div class="space-y-4">
               <div><label class="block text-sm font-semibold">Tahun</label><select id="tahun" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Tahun --</option><option>Tahun 1</option><option>Tahun 2</option><option>Tahun 3</option><option>Tahun 4</option><option>Tahun 5</option><option>Tahun 6</option></select></div>
-              <div><label class="block text-sm font-semibold">Mata Pelajaran</label><select id="mpPenjana" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih --</option><option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option><option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option><option>Seni Visual</option><option>Muzik</option><option>Sejarah</option><option>RBT</option><option>TMK</option></select></div>
+              <div><label class="block text-sm font-semibold">Mata Pelajaran</label><select id="mpPenjana" class="w-full px-4 py-2.5 rounded-xl border" required>
+                <option value="">-- Pilih --</option>
+                <option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option>
+                <option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option>
+                <option>Seni Visual</option><option>Muzik</option><option>Sejarah</option>
+                <option>RBT</option><option>TMK</option><option>Bahasa Iban</option>
+              </select></div>
               <div><label class="block text-sm font-semibold">Standard Kandungan / Tajuk</label><input type="text" id="topik" class="w-full px-4 py-2.5 rounded-xl border" placeholder="Cth: 1.1 Mendengar dan Bertutur" required><p class="text-xs text-gray-400 mt-1">Rujuk DSKP untuk kod standard yang tepat.</p></div>
               <div><label class="block text-sm font-semibold">Aktiviti / Langkah PdPC</label><textarea id="butiranTambahan" rows="3" class="w-full px-4 py-2.5 rounded-xl border" placeholder="Cth: 1. Murid berbincang dalam kumpulan. 2. Lembaran kerja. 3. Permainan kuiz."></textarea><p class="text-xs text-gray-400 mt-1">Huraikan aktiviti utama untuk membantu AI menjana bahan yang lebih tepat.</p></div>
             </div>
@@ -454,7 +469,6 @@
     if (!records) return;
     const today = new Date().toISOString().split('T')[0];
     
-    // Kad statistik
     document.getElementById('statCards').innerHTML = `
       <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600"><i class="fa-solid fa-user-check text-xl"></i></div><div><div class="text-2xl font-extrabold">${records.length}</div><div class="text-xs text-gray-500">Jumlah Guru Ganti</div></div></div></div>
       <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"><i class="fa-solid fa-calendar-check text-xl"></i></div><div><div class="text-2xl font-extrabold">${records.filter(r=>r.tarikh===today).length}</div><div class="text-xs text-gray-500">Tugasan Hari Ini</div></div></div></div>
@@ -462,7 +476,6 @@
       <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600"><i class="fa-solid fa-children text-xl"></i></div><div><div class="text-2xl font-extrabold">${new Set(records.map(r=>r.kelas.toLowerCase())).size}</div><div class="text-xs text-gray-500">Kelas Terlibat</div></div></div></div>
     `;
 
-    // Analisis mingguan
     const now = new Date();
     const monday = new Date(now); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
     const friday = new Date(monday); friday.setDate(monday.getDate() + 4);
@@ -483,7 +496,6 @@
       <p>📌 Jumlah rekod: ${records.length}</p>
     `;
 
-    // --- PEMAKLUMAN HARI INI ---
     const todayRecords = records.filter(r => r.tarikh === today);
     const pemaklumanDiv = document.getElementById('pemaklumanGuruGanti');
     if (!pemaklumanDiv) return;
@@ -491,7 +503,6 @@
     if (todayRecords.length === 0) {
       pemaklumanDiv.innerHTML = '<p class="text-gray-500 text-sm">Tiada tugasan guru ganti untuk hari ini.</p>';
     } else {
-      // Isih mengikut slot masa (boleh ikut urutan asal)
       const slotOrder = ["7:20-7:50","7:50-8:20","8:20-8:50","8:50-9:20","9:20-9:50","10:10-10:40","10:40-11:10","11:10-11:40","11:40-12:10","12:10-12:40","12:40-1:10"];
       todayRecords.sort((a, b) => slotOrder.indexOf(a.slot_masa) - slotOrder.indexOf(b.slot_masa));
 
