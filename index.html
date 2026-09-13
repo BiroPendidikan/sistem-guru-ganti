@@ -57,6 +57,11 @@
         <h3 class="font-bold">Analisis Mingguan</h3>
         <div id="analisisMingguan"></div>
       </div>
+      <!-- ✅ TAMBAHAN: Analisis Kekerapan Mengikut Mata Pelajaran -->
+      <div class="bg-white rounded-2xl shadow p-5">
+        <h3 class="font-bold mb-3"><i class="fa-solid fa-chart-bar text-blue-600 mr-2"></i>Analisis Kekerapan Mengikut Mata Pelajaran</h3>
+        <div id="analisisKekerapan"></div>
+      </div>
       <div class="bg-white rounded-2xl shadow p-5">
         <h3 class="font-bold mb-3"><i class="fa-solid fa-bullhorn text-blue-600 mr-2"></i>Pemakluman Tugasan Guru Ganti Hari Ini</h3>
         <div id="pemaklumanGuruGanti"></div>
@@ -83,13 +88,11 @@
             <label class="block text-sm font-semibold">Nama Guru Tidak Hadir</label>
             <input type="text" id="guruTakHadir" class="w-full px-4 py-2.5 rounded-xl border" required>
           </div>
-          <!-- ✅ TAMBAHAN: Tarikh Penggantian -->
           <div>
             <label class="block text-sm font-semibold">Tarikh Penggantian <span class="text-red-500">*</span></label>
             <input type="date" id="tarikhGanti" class="w-full px-4 py-2.5 rounded-xl border" required onchange="syncHariFromTarikh()">
             <p class="text-xs text-gray-400 mt-1"><i class="fa-solid fa-circle-info text-blue-500"></i> Hanya Isnin–Jumaat dibenarkan</p>
           </div>
-          <!-- ✅ Hari kini auto berdasarkan tarikh -->
           <div>
             <label class="block text-sm font-semibold">Hari <span class="text-xs text-gray-400">(auto dari tarikh)</span></label>
             <select id="hariGanti" class="w-full px-4 py-2.5 rounded-xl border bg-gray-100 cursor-not-allowed" required disabled>
@@ -319,7 +322,8 @@
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(`page-${page}`).classList.add('active');
     if (window.innerWidth < 1024) closeSidebar();
-    if (page === 'dashboard') updateDashboard();
+    // ✅ Ditambah panggilan renderAnalisisKekerapan() semasa navigasi dashboard
+    if (page === 'dashboard') { updateDashboard(); renderAnalisisKekerapan(); }
     else if (page === 'pengurusan') { updateCariGuruDropdown(); renderTable(); refreshPdfTarikhOptions(); }
     else if (page === 'jadual') renderJadual();
   };
@@ -358,7 +362,6 @@
 
     if (!supabaseClient) return;
 
-    // ✅ Guna tarikh dipilih (bukan tarikh hari ini) untuk semak konflik
     const tarikhSemak = tarikhPilih || new Date().toISOString().split('T')[0];
 
     const [{ data: jadual }, { data: rekodTarikhIni }] = await Promise.all([
@@ -375,7 +378,6 @@
       return !adaPdPC && !sudahTugasGanti;
     });
 
-    // ✅ Kira bilangan waktu mengajar setiap guru pada hari dipilih
     const guruDenganBilangan = tersedia.map(nama => {
       const bilangan = cachedJadual.filter(j => j.nama_guru === nama && j.hari === hari).length;
       return { nama, bilangan };
@@ -442,7 +444,6 @@
       return showToast('Lengkapkan semua ruangan termasuk Tarikh Penggantian.', 'error');
     }
 
-    // ✅ Sahkan hari sepadan dengan tarikh
     const d = new Date(tarikh + 'T00:00:00');
     const dayMap = ['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
     const hariSahih = dayMap[d.getDay()];
@@ -450,7 +451,6 @@
       return showToast(`Hari tidak sepadan. ${tarikh} adalah hari ${hariSahih}.`, 'error');
     }
 
-    // ✅ Semak konflik pada tarikh dipilih
     const { data: exist } = await supabaseClient.from('rekod_guru_ganti').select('*').eq('guru_ganti', guruGanti).eq('tarikh', tarikh).eq('slot_masa', slotMasa);
     if (exist?.length) return showToast('Guru ganti sudah ada tugasan pada slot ini!', 'error');
 
@@ -467,11 +467,11 @@
     document.getElementById('formGuruGanti').reset();
     document.getElementById('hariGanti').value = '';
     document.getElementById('guruGanti').innerHTML = '<option value="">-- Pilih Tarikh, Slot & Hari Dahulu --</option>';
-    renderTable(); updateDashboard(); refreshPdfTarikhOptions();
+    renderTable(); updateDashboard(); refreshPdfTarikhOptions(); renderAnalisisKekerapan();
     showToast('Rekod disimpan!', 'success');
   };
 
-  window.padamRekod = async (id) => { if (!supabaseClient) return; await supabaseClient.from('rekod_guru_ganti').delete().eq('id', id); renderTable(); updateDashboard(); refreshPdfTarikhOptions(); };
+  window.padamRekod = async (id) => { if (!supabaseClient) return; await supabaseClient.from('rekod_guru_ganti').delete().eq('id', id); renderTable(); updateDashboard(); refreshPdfTarikhOptions(); renderAnalisisKekerapan(); };
   window.resetBorang = () => {
     document.getElementById('formGuruGanti').reset();
     document.getElementById('hariGanti').value = '';
@@ -587,7 +587,6 @@
     document.getElementById('hasilCarian').innerHTML = html;
   };
 
-  // ✅ pilihGuruGanti: set tarikh ke hari ini (sejak carian menggunakan hari ini)
   window.pilihGuruGanti = (guruTakHadir, hari, slot, kelas, mp, guruGanti) => {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('tarikhGanti').value = today;
@@ -719,6 +718,145 @@
       html += '</div>';
       pemaklumanDiv.innerHTML = html;
     }
+  }
+
+  // ============================================================
+  // ✅ TAMBAHAN BAHARU: ANALISIS KEKERAPAN MENGIKUT MATA PELAJARAN
+  // ============================================================
+  let analisisView = { mode: 'mingguan', offset: 0 };
+
+  function dateToStr(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dd}`;
+  }
+
+  window.tukarModAnalisis = (mode) => {
+    analisisView.mode = mode;
+    analisisView.offset = 0;
+    renderAnalisisKekerapan();
+  };
+
+  window.analisisNavigate = (dir) => {
+    analisisView.offset += dir;
+    renderAnalisisKekerapan();
+  };
+
+  async function renderAnalisisKekerapan() {
+    const container = document.getElementById('analisisKekerapan');
+    if (!container) return;
+    if (!supabaseClient) {
+      container.innerHTML = '<p class="text-gray-500 text-sm">Pangkalan data tidak bersambung.</p>';
+      return;
+    }
+
+    const { data: records } = await supabaseClient.from('rekod_guru_ganti').select('*');
+    if (!records) return;
+
+    const now = new Date();
+    const mode = analisisView.mode;
+    const offset = analisisView.offset;
+    let start, end, label;
+
+    if (mode === 'mingguan') {
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - ((now.getDay() + 6) % 7) + offset * 7);
+      monday.setHours(0, 0, 0, 0);
+      const friday = new Date(monday);
+      friday.setDate(monday.getDate() + 4);
+      start = monday;
+      end = friday;
+      label = `Minggu ${monday.toLocaleDateString('ms-MY', {day:'2-digit', month:'short'})} – ${friday.toLocaleDateString('ms-MY', {day:'2-digit', month:'short', year:'numeric'})}`;
+    } else if (mode === 'bulanan') {
+      const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+      start = new Date(d.getFullYear(), d.getMonth(), 1);
+      end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+      label = d.toLocaleDateString('ms-MY', {month:'long', year:'numeric'});
+    } else {
+      const y = now.getFullYear() + offset;
+      start = new Date(y, 0, 1);
+      end = new Date(y, 11, 31);
+      label = `Tahun ${y}`;
+    }
+
+    const startStr = dateToStr(start);
+    const endStr = dateToStr(end);
+
+    const filtered = records.filter(r => r.tarikh >= startStr && r.tarikh <= endStr);
+
+    const freq = {};
+    filtered.forEach(r => {
+      const mp = r.mata_pelajaran || 'Tidak Diketahui';
+      freq[mp] = (freq[mp] || 0) + 1;
+    });
+
+    const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+    const maxCount = sorted.length ? sorted[0][1] : 0;
+    const total = filtered.length;
+
+    let html = `
+      <div class="flex flex-wrap gap-2 mb-4 items-center justify-between">
+        <div class="flex gap-2 flex-wrap">
+          <button onclick="tukarModAnalisis('mingguan')" class="${mode==='mingguan'?'bg-blue-600 text-white':'bg-gray-100 text-gray-700 hover:bg-gray-200'} px-4 py-2 rounded-lg text-sm font-semibold transition">
+            <i class="fa-solid fa-calendar-week"></i> Mingguan
+          </button>
+          <button onclick="tukarModAnalisis('bulanan')" class="${mode==='bulanan'?'bg-blue-600 text-white':'bg-gray-100 text-gray-700 hover:bg-gray-200'} px-4 py-2 rounded-lg text-sm font-semibold transition">
+            <i class="fa-solid fa-calendar-days"></i> Bulanan
+          </button>
+          <button onclick="tukarModAnalisis('tahunan')" class="${mode==='tahunan'?'bg-blue-600 text-white':'bg-gray-100 text-gray-700 hover:bg-gray-200'} px-4 py-2 rounded-lg text-sm font-semibold transition">
+            <i class="fa-solid fa-calendar"></i> Tahunan
+          </button>
+        </div>
+        <div class="flex gap-2 items-center">
+          <button onclick="analisisNavigate(-1)" class="border border-gray-300 px-3 py-2 rounded-lg text-sm hover:bg-gray-50" title="Tempoh sebelumnya">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <span class="font-semibold text-sm min-w-[220px] text-center">${label}</span>
+          <button onclick="analisisNavigate(1)" class="border border-gray-300 px-3 py-2 rounded-lg text-sm hover:bg-gray-50" title="Tempoh seterusnya">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    `;
+
+    html += `<div class="mb-3 text-sm text-gray-600">📊 Jumlah penggantian: <strong>${total}</strong> rekod</div>`;
+
+    if (!sorted.length) {
+      html += '<p class="text-gray-500 text-center py-8">Tiada data untuk tempoh ini.</p>';
+    } else {
+      html += '<div class="space-y-3">';
+      sorted.forEach(([mp, count]) => {
+        const barPercent = maxCount ? (count / maxCount) * 100 : 0;
+        const percentOfTotal = total ? Math.round((count / total) * 100) : 0;
+        const warna = percentOfTotal >= 30 ? 'bg-red-500' : percentOfTotal >= 15 ? 'bg-amber-500' : percentOfTotal >= 5 ? 'bg-blue-500' : 'bg-emerald-500';
+        html += `
+          <div>
+            <div class="flex justify-between items-center mb-1 text-sm">
+              <span class="font-semibold">${esc(mp)}</span>
+              <span><strong>${count}</strong> kali <span class="text-gray-400">(${percentOfTotal}%)</span></span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+              <div class="${warna} h-full rounded-full transition-all duration-500" style="width: ${barPercent}%"></div>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+
+      html += `
+        <div class="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-100">
+          <div class="text-xs font-semibold text-blue-700 mb-2"><i class="fa-solid fa-trophy text-amber-500"></i> Mata pelajaran paling kerap diganti:</div>
+          <div class="text-sm space-y-1">
+            ${sorted.slice(0, 3).map(([mp, count], i) =>
+              `<div>${['🥇','🥈','🥉'][i]} <strong>${esc(mp)}</strong> — ${count} kali</div>`
+            ).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
   }
 
   // ============================================================
@@ -981,6 +1119,7 @@
     await updateDashboard();
     await updateCariGuruDropdown();
     await refreshPdfTarikhOptions();
+    await renderAnalisisKekerapan();
     navigateTo('dashboard');
   });
 </script>
