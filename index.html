@@ -7,6 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- TAMBAHAN: jsPDF untuk janaan PDF A4 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     .sidebar { transition: transform 0.3s ease; }
     .sidebar.open { transform: translateX(0); }
@@ -136,6 +138,29 @@
         <button onclick="eksportCSV()" class="border px-4 py-1.5 rounded-lg text-sm mb-2"><i class="fa-solid fa-download"></i> Eksport CSV</button>
         <div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3">#</th><th class="p-3">Guru Tak Hadir</th><th class="p-3">Slot</th><th class="p-3">Guru Ganti</th><th class="p-3">Kelas</th><th class="p-3">MP</th><th class="p-3">Tarikh</th><th class="p-3">Tindakan</th></tr></thead><tbody id="tbodyRekod"></tbody></table></div>
       </div>
+
+      <!-- ============================================================ -->
+      <!-- TAMBAHAN BAHARU: JADUAL PENGESAHAN GURU GANTI (PDF A4) -->
+      <!-- ============================================================ -->
+      <div class="bg-white rounded-2xl shadow p-5">
+        <h3 class="font-bold mb-2">
+          <i class="fa-solid fa-file-signature text-red-600 mr-2"></i>
+          Jadual Pengesahan Guru Ganti (PDF A4)
+        </h3>
+        <p class="text-gray-500 text-sm mb-3">
+          Jana jadual pengesahan dalam format A4 dengan ruangan tandatangan guru ganti, dikelaskan mengikut tarikh.
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <button onclick="previewVerificationTable()" class="border px-5 py-2.5 rounded-xl">
+            <i class="fa-solid fa-eye"></i> Pratonton Jadual
+          </button>
+          <button onclick="generateVerificationPDF()" class="bg-red-600 text-white px-6 py-2.5 rounded-xl font-semibold">
+            <i class="fa-solid fa-file-pdf"></i> Jana Jadual Pengesahan PDF A4
+          </button>
+        </div>
+        <div id="verificationPreview" class="mt-4"></div>
+      </div>
+      <!-- ============================================================ -->
     </div>
 
     <!-- Jadual Waktu -->
@@ -227,7 +252,6 @@
 
   </div>
 
-  <!-- Footer penafian -->
   <div class="text-center text-xs text-gray-400 py-3 border-t border-gray-200 mt-6">
     <i class="fa-solid fa-shield-halved mr-1"></i> Pihak sekolah tidak bertanggungjawab jika berlaku sebarang kehilangan dan kerosakan kerana penggunaan laman ini.
   </div>
@@ -299,10 +323,8 @@
       supabaseClient.from('rekod_guru_ganti').select('*').eq('tarikh', new Date().toISOString().split('T')[0])
     ]);
 
-    // ✅ SIMPAN CACHE
     cachedJadual = jadual || [];
 
-    // Isi dropdown guru ganti
     const semuaGuru = [...new Set(cachedJadual.map(j => j.nama_guru))];
     const tersedia = semuaGuru.filter(nama => {
       const adaPdPC = cachedJadual.some(j => j.nama_guru === nama && j.hari === hari && j.slot_masa === slot);
@@ -314,11 +336,9 @@
       ? '<option value="">⚠️ Tiada guru tersedia</option>'
       : '<option value="">-- Pilih Guru Ganti --</option>' + tersedia.map(n => `<option>${n}</option>`).join('');
 
-    // ✅ PANGGIL AUTO-FILL SELEPAS CACHE SIAP
     autoFillKelasMP();
   }
 
-  // Auto isi Kelas & MP berdasarkan nama guru tidak hadir + hari + slot
   function autoFillKelasMP() {
     const nama = document.getElementById('guruTakHadir').value.trim();
     const hari = document.getElementById('hariGanti').value;
@@ -593,6 +613,216 @@
       pemaklumanDiv.innerHTML = html;
     }
   }
+
+  // ============================================================
+  // TAMBAHAN BAHARU: JANA JADUAL PENGESAHAN GURU GANTI (PDF A4)
+  // ============================================================
+  function formatDateMY(dateStr) {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr + 'T00:00:00');
+    const hari = ['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'][d.getDay()];
+    const bulan = ['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'][d.getMonth()];
+    return `${hari}, ${d.getDate()} ${bulan} ${d.getFullYear()}`;
+  }
+
+  function groupRecordsByDate(records) {
+    const grouped = {};
+    records.forEach(r => {
+      if (!grouped[r.tarikh]) grouped[r.tarikh] = [];
+      grouped[r.tarikh].push(r);
+    });
+    return Object.keys(grouped).sort().reduce((acc, d) => {
+      acc[d] = grouped[d];
+      return acc;
+    }, {});
+  }
+
+  window.previewVerificationTable = async () => {
+    const preview = document.getElementById('verificationPreview');
+    if (!supabaseClient) return preview.innerHTML = '<p class="text-red-600 text-sm">Pangkalan data tidak bersambung.</p>';
+    const { data: records } = await supabaseClient.from('rekod_guru_ganti').select('*').order('tarikh', { ascending: true });
+    if (!records?.length) return preview.innerHTML = '<p class="text-red-600 text-sm">⚠️ Tiada rekod untuk dipaparkan.</p>';
+
+    const grouped = groupRecordsByDate(records);
+    let html = '';
+    Object.keys(grouped).forEach(date => {
+      html += `<h4 class="mt-4 mb-2 font-bold text-blue-700"><i class="fa-solid fa-calendar-day mr-1"></i>${formatDateMY(date)}</h4>`;
+      html += `<div class="overflow-x-auto"><table class="w-full text-sm border"><thead class="bg-blue-50"><tr>
+        <th class="p-2 border text-left">Slot</th>
+        <th class="p-2 border text-left">Guru Kursus</th>
+        <th class="p-2 border text-left">Guru Ganti</th>
+        <th class="p-2 border text-left">Kelas</th>
+        <th class="p-2 border text-left">Subjek</th>
+        <th class="p-2 border text-left" style="min-width:120px;">Tandatangan</th>
+      </tr></thead><tbody>`;
+      grouped[date].forEach(r => {
+        html += `<tr>
+          <td class="p-2 border">${esc(r.slot_masa)}</td>
+          <td class="p-2 border text-red-600">${esc(r.guru_tak_hadir)}</td>
+          <td class="p-2 border text-emerald-700 font-semibold">${esc(r.guru_ganti)}</td>
+          <td class="p-2 border">${esc(r.kelas)}</td>
+          <td class="p-2 border">${esc(r.mata_pelajaran)}</td>
+          <td class="p-2 border text-gray-300">______________</td>
+        </tr>`;
+      });
+      html += `</tbody></table></div>`;
+    });
+    preview.innerHTML = html;
+  };
+
+  window.generateVerificationPDF = async () => {
+    if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
+    const { data: records } = await supabaseClient.from('rekod_guru_ganti').select('*').order('tarikh', { ascending: true });
+    if (!records?.length) return showToast('Tiada rekod untuk dijana.', 'error');
+
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const marginLeft = 15;
+      const marginTop = 15;
+      const usableWidth = pageWidth - marginLeft - 15;
+      let y = marginTop;
+
+      // Header
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.text('JADUAL PENGESAHAN GURU GANTI', pageWidth / 2, y, { align: 'center' });
+      y += 7;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('SK RC KUBONG @ 2026', pageWidth / 2, y, { align: 'center' });
+      y += 5;
+      doc.text(`Tarikh Cetakan: ${formatDateMY(new Date().toISOString().split('T')[0])}`, marginLeft, y);
+      y += 8;
+
+      const grouped = groupRecordsByDate(records);
+      const dates = Object.keys(grouped);
+
+      const colWidths = [24, 38, 38, 20, 32, 28]; // Slot, Guru Kursus, Guru Ganti, Kelas, Subjek, Tandatangan
+      const headers = ['Slot', 'Guru Kursus', 'Guru Ganti', 'Kelas', 'Subjek', 'Tandatangan'];
+      const rowHeight = 12;
+      const lineHeight = 4.5;
+
+      function drawTableHeader(yPos) {
+        doc.setFillColor(37, 99, 235);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        let x = marginLeft;
+        headers.forEach((h, i) => {
+          doc.rect(x, yPos, colWidths[i], 8, 'F');
+          doc.text(h, x + 1.5, yPos + 5.5);
+          x += colWidths[i];
+        });
+        doc.setTextColor(0, 0, 0);
+        return yPos + 8;
+      }
+
+      function drawWrappedText(text, x, yPos, maxWidth) {
+        const lines = doc.splitTextToSize(String(text || '-'), maxWidth - 3);
+        lines.forEach((line, i) => {
+          doc.text(line, x + 1.5, yPos + 4 + (i * lineHeight));
+        });
+        return lines.length;
+      }
+
+      for (let d = 0; d < dates.length; d++) {
+        const date = dates[d];
+        const rows = grouped[date];
+
+        if (y + 20 + rows.length * rowHeight > pageHeight - 20) {
+          doc.addPage();
+          y = marginTop;
+        }
+
+        // Date header
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setFillColor(219, 234, 254);
+        doc.rect(marginLeft, y, usableWidth, 7, 'F');
+        doc.setTextColor(30, 64, 175);
+        doc.text(`Tarikh: ${formatDateMY(date)}`, marginLeft + 2, y + 5);
+        doc.setTextColor(0, 0, 0);
+        y += 7;
+
+        y = drawTableHeader(y);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        rows.forEach((r) => {
+          const rowData = [
+            String(r.slot_masa || '-'),
+            r.guru_tak_hadir || '-',
+            r.guru_ganti || '-',
+            r.kelas || '-',
+            r.mata_pelajaran || '-',
+            ''
+          ];
+
+          let maxLines = 1;
+          rowData.forEach((val, i) => {
+            const lines = doc.splitTextToSize(String(val || '-'), colWidths[i] - 3);
+            if (lines.length > maxLines) maxLines = lines.length;
+          });
+          const thisRowHeight = Math.max(rowHeight, maxLines * lineHeight + 4);
+
+          if (y + thisRowHeight > pageHeight - 20) {
+            doc.addPage();
+            y = marginTop;
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
+            doc.text('JADUAL PENGESAHAN GURU GANTI (sambungan)', pageWidth / 2, y, { align: 'center' });
+            y += 6;
+            y = drawTableHeader(y);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+          }
+
+          let x = marginLeft;
+          rowData.forEach((val, i) => {
+            doc.rect(x, y, colWidths[i], thisRowHeight);
+            if (i !== 5) drawWrappedText(val, x, y, colWidths[i]);
+            x += colWidths[i];
+          });
+
+          // Garis tandatangan
+          const sigX = marginLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4];
+          doc.setDrawColor(150, 150, 150);
+          doc.line(sigX + 4, y + thisRowHeight - 3, sigX + colWidths[5] - 4, y + thisRowHeight - 3);
+          doc.setDrawColor(0, 0, 0);
+
+          y += thisRowHeight;
+        });
+
+        y += 4;
+      }
+
+      if (y + 30 > pageHeight - 20) {
+        doc.addPage();
+        y = marginTop;
+      }
+      y += 8;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.text('Disediakan oleh:', marginLeft, y);
+      doc.text('Disahkan oleh:', pageWidth / 2 + 10, y);
+      y += 20;
+      doc.line(marginLeft, y, marginLeft + 60, y);
+      doc.line(pageWidth / 2 + 10, y, pageWidth / 2 + 70, y);
+      y += 5;
+      doc.text('(Guru Bertugas)', marginLeft, y);
+      doc.text('(Pengetua / Guru Besar)', pageWidth / 2 + 10, y);
+
+      doc.save(`Jadual_Pengesahan_Guru_Ganti_${new Date().toISOString().split('T')[0]}.pdf`);
+      showToast('PDF berjaya dijana!', 'success');
+    } catch (e) {
+      console.error(e);
+      showToast('Gagal menjana PDF: ' + e.message, 'error');
+    }
+  };
 
   // Mula
   window.addEventListener('DOMContentLoaded', async () => {
