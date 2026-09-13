@@ -7,7 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- jsPDF untuk janaan PDF A4 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     .sidebar { transition: transform 0.3s ease; }
@@ -108,6 +107,7 @@
             <select id="guruGanti" class="w-full px-4 py-2.5 rounded-xl border" required>
               <option value="">-- Pilih Slot & Hari Dahulu --</option>
             </select>
+            <p class="text-xs text-gray-400 mt-1"><i class="fa-solid fa-lightbulb text-amber-500"></i> 🟢 0 waktu · 🟡 1-3 · 🟠 4-5 · 🔴 6+ waktu</p>
           </div>
           <div>
             <label class="block text-sm font-semibold">Kelas</label>
@@ -139,9 +139,7 @@
         <div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3">#</th><th class="p-3">Guru Tak Hadir</th><th class="p-3">Slot</th><th class="p-3">Guru Ganti</th><th class="p-3">Kelas</th><th class="p-3">MP</th><th class="p-3">Tarikh</th><th class="p-3">Tindakan</th></tr></thead><tbody id="tbodyRekod"></tbody></table></div>
       </div>
 
-      <!-- ============================================================ -->
       <!-- JADUAL PENGESAHAN GURU GANTI (PDF A4) dengan Penapis Tarikh -->
-      <!-- ============================================================ -->
       <div class="bg-white rounded-2xl shadow p-5">
         <h3 class="font-bold mb-2">
           <i class="fa-solid fa-file-signature text-red-600 mr-2"></i>
@@ -173,7 +171,6 @@
         </div>
         <div id="verificationPreview" class="mt-4"></div>
       </div>
-      <!-- ============================================================ -->
     </div>
 
     <!-- Jadual Waktu -->
@@ -318,7 +315,7 @@
   }
   function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-  // Auto isi dropdown guru ganti + auto isi kelas & MP
+  // ========== SMART: Auto isi dropdown guru ganti dengan bilangan waktu ==========
   async function updateGuruGantiDropdown() {
     const hari = document.getElementById('hariGanti').value;
     const slot = document.getElementById('slotMasa').value;
@@ -345,9 +342,21 @@
       return !adaPdPC && !sudahTugasGanti;
     });
 
-    selectGuru.innerHTML = tersedia.length === 0
-      ? '<option value="">⚠️ Tiada guru tersedia</option>'
-      : '<option value="">-- Pilih Guru Ganti --</option>' + tersedia.map(n => `<option>${n}</option>`).join('');
+    // ✅ Kira bilangan waktu mengajar setiap guru pada hari dipilih
+    const guruDenganBilangan = tersedia.map(nama => {
+      const bilangan = cachedJadual.filter(j => j.nama_guru === nama && j.hari === hari).length;
+      return { nama, bilangan };
+    }).sort((a, b) => a.bilangan - b.bilangan); // paling sedikit dahulu
+
+    if (!guruDenganBilangan.length) {
+      selectGuru.innerHTML = '<option value="">⚠️ Tiada guru tersedia</option>';
+    } else {
+      selectGuru.innerHTML = '<option value="">-- Pilih Guru Ganti --</option>' +
+        guruDenganBilangan.map(g => {
+          const icon = g.bilangan === 0 ? '🟢' : g.bilangan <= 3 ? '🟡' : g.bilangan <= 5 ? '🟠' : '🔴';
+          return `<option value="${g.nama}">${icon} ${g.nama} — ${g.bilangan} waktu</option>`;
+        }).join('');
+    }
 
     autoFillKelasMP();
   }
@@ -476,6 +485,8 @@
     const unique = [...new Set(data.map(d => d.nama_guru))];
     document.getElementById('cariNamaGuru').innerHTML = '<option value="">-- Pilih Guru Tidak Hadir --</option>' + unique.map(n => `<option>${n}</option>`).join('');
   }
+
+  // ========== SMART: Carian slot kosong dengan bilangan waktu ==========
   window.cariSlotKosong = async () => {
     if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
     const guru = document.getElementById('cariNamaGuru').value;
@@ -490,8 +501,34 @@
     let html = '';
     slotDiajar.forEach(s => {
       const tersedia = semuaGuru.filter(n => !jadual.some(j => j.nama_guru === n && j.hari === hari && j.slot_masa === s.slot_masa) && !rekod.some(r => r.guru_ganti === n && r.slot_masa === s.slot_masa));
+
+      // ✅ Kira bilangan waktu untuk setiap guru tersedia pada hari dipilih
+      const tersediaDenganBilangan = tersedia.map(n => ({
+        nama: n,
+        bilangan: jadual.filter(j => j.nama_guru === n && j.hari === hari).length
+      })).sort((a, b) => a.bilangan - b.bilangan); // paling sedikit dahulu
+
       html += `<div class="p-4 bg-gray-50 rounded-xl border"><p class="font-semibold">${s.slot_masa} - ${s.kelas} (${s.mata_pelajaran})</p>`;
-      html += tersedia.length ? `<div class="flex flex-wrap gap-2 mt-2">${tersedia.map(g => `<button onclick="pilihGuruGanti('${guru}','${hari}','${s.slot_masa}','${s.kelas}','${s.mata_pelajaran}','${g}')" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-100">${g}</button>`).join('')}</div>` : '<p class="text-red-500 text-sm">⚠️ Tiada guru tersedia.</p>';
+      if (tersediaDenganBilangan.length) {
+        html += `<div class="flex flex-wrap gap-2 mt-2">`;
+        tersediaDenganBilangan.forEach(g => {
+          // Warna ikut beban: hijau (0), kuning (1-3), oren (4-5), merah (6+)
+          const warna = g.bilangan === 0 ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                       : g.bilangan <= 3 ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
+                       : g.bilangan <= 5 ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+                       : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200';
+          const icon = g.bilangan === 0 ? '🟢' : g.bilangan <= 3 ? '🟡' : g.bilangan <= 5 ? '🟠' : '🔴';
+          html += `<button onclick="pilihGuruGanti('${guru}','${hari}','${s.slot_masa}','${s.kelas}','${s.mata_pelajaran}','${g.nama}')" 
+                    class="px-3 py-1.5 ${warna} rounded-lg text-sm font-medium transition"
+                    title="Bilangan waktu mengajar pada hari ${hari}: ${g.bilangan} waktu">
+                    ${icon} ${g.nama} <span class="font-bold ml-1">(${g.bilangan} waktu)</span>
+                  </button>`;
+        });
+        html += `</div>`;
+        html += `<p class="text-xs text-gray-500 mt-2"><i class="fa-solid fa-lightbulb text-amber-500"></i> Guru dengan bilangan waktu <strong>paling sedikit</strong> dipaparkan dahulu untuk elak beban berlebihan. 🟢 0 waktu &nbsp; 🟡 1-3 &nbsp; 🟠 4-5 &nbsp; 🔴 6+</p>`;
+      } else {
+        html += '<p class="text-red-500 text-sm">⚠️ Tiada guru tersedia.</p>';
+      }
       html += '</div>';
     });
     document.getElementById('hasilCarian').innerHTML = html;
