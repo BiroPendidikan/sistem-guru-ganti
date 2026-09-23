@@ -62,7 +62,7 @@
         <div id="analisisKekerapan"></div>
       </div>
       <div class="bg-white rounded-2xl shadow p-5">
-        <h3 class="font-bold mb-3"><i class="fa-solid fa-bullhorn text-blue-600 mr-2"></i>Pemakluman Tugasan Guru Ganti</h3>
+        <h3 class="font-bold mb-3"><i class="fa-solid fa-bullhorn text-blue-600 mr-2"></i>Pemakluman Tugasan Guru Ganti Hari Ini</h3>
         <div id="pemaklumanGuruGanti"></div>
       </div>
     </div>
@@ -312,9 +312,7 @@
   let penjanaCount = parseInt(localStorage.getItem('penjanaCount') || '0');
   let cachedJadual = [];
 
-  // ============================================================
-  // ✅ PEMBETULAN: Fungsi tarikh waktu tempatan Malaysia (elak timezone UTC)
-  // ============================================================
+  // ========== TAMBAHAN: Tarikh waktu tempatan (Malaysia) - elak masalah timezone UTC ==========
   function getLocalDateStr(d = new Date()) {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -322,6 +320,7 @@
     return `${y}-${m}-${dd}`;
   }
 
+  // ========== Selaras Hari dengan Tarikh ==========
   window.syncHariFromTarikh = () => {
     const tarikh = document.getElementById('tarikhGanti').value;
     const hariSelect = document.getElementById('hariGanti');
@@ -340,6 +339,7 @@
     updateGuruGantiDropdown();
   };
 
+  // Navigasi
   window.navigateTo = (page) => {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(`page-${page}`).classList.add('active');
@@ -357,6 +357,7 @@
     document.getElementById('sidebarOverlay').classList.add('hidden');
   };
 
+  // Toast
   function showToast(msg, type='info') {
     const colors = { success: 'bg-emerald-600', error: 'bg-red-600', info: 'bg-blue-600' };
     const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
@@ -368,6 +369,7 @@
   }
   function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
+  // ========== SMART: Auto isi dropdown guru ganti dengan bilangan waktu ==========
   async function updateGuruGantiDropdown() {
     const hari = document.getElementById('hariGanti').value;
     const slot = document.getElementById('slotMasa').value;
@@ -380,7 +382,6 @@
     }
     if (!supabaseClient) return;
 
-    // ✅ PEMBETULAN: Guna waktu tempatan
     const tarikhSemak = tarikhPilih || getLocalDateStr(new Date());
 
     const [{ data: jadual }, { data: rekodTarikhIni }] = await Promise.all([
@@ -428,6 +429,7 @@
     if (match) { kelasSelect.value = match.kelas; mpSelect.value = match.mata_pelajaran; }
   }
 
+  // Rekod guru ganti
   async function renderTable() {
     if (!supabaseClient) return;
     const { data, error } = await supabaseClient.from('rekod_guru_ganti').select('*').order('id', { ascending: false });
@@ -509,6 +511,7 @@
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'rekod_ganti.csv'; a.click();
   };
 
+  // Jadual waktu
   async function renderJadual() {
     if (!supabaseClient) return;
     const { data } = await supabaseClient.from('jadual_waktu').select('*').order('id');
@@ -553,6 +556,7 @@
     reader.readAsText(file);
   };
 
+  // Carian guru ganti
   async function updateCariGuruDropdown() {
     if (!supabaseClient) return;
     const { data } = await supabaseClient.from('jadual_waktu').select('nama_guru');
@@ -570,7 +574,6 @@
     const slotDiajar = jadual.filter(j => j.nama_guru === guru && j.hari === hari);
     if (!slotDiajar.length) return document.getElementById('hasilCarian').innerHTML = '<p class="text-gray-500">Tiada kelas pada hari ini.</p>';
     const semuaGuru = [...new Set(jadual.map(j => j.nama_guru))].filter(n => n !== guru);
-    // ✅ PEMBETULAN: Guna waktu tempatan
     const today = getLocalDateStr(new Date());
     const { data: rekod } = await supabaseClient.from('rekod_guru_ganti').select('*').eq('tarikh', today);
     let html = '';
@@ -600,7 +603,6 @@
   };
 
   window.pilihGuruGanti = (guruTakHadir, hari, slot, kelas, mp, guruGanti) => {
-    // ✅ PEMBETULAN: Guna waktu tempatan
     const today = getLocalDateStr(new Date());
     document.getElementById('tarikhGanti').value = today;
     document.getElementById('guruTakHadir').value = guruTakHadir;
@@ -612,6 +614,7 @@
     showToast(`Guru ganti ${guruGanti} dipilih untuk ${hari} (${today}). Klik Simpan.`, 'success');
   };
 
+  // Penjana AI
   window.janaBahan = async (e) => {
     e.preventDefault();
     const tahun = document.getElementById('tahun').value;
@@ -663,12 +666,13 @@
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'bahan_kssr.txt'; a.click();
   };
 
+  // ==================== DASHBOARD ====================
   async function updateDashboard() {
     if (!supabaseClient) return;
     const { data: records } = await supabaseClient.from('rekod_guru_ganti').select('*');
     if (!records) return;
-    // ✅ PEMBETULAN: Guna waktu tempatan
     const today = getLocalDateStr(new Date());
+
     document.getElementById('statCards').innerHTML = `
       <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600"><i class="fa-solid fa-user-check text-xl"></i></div><div><div class="text-2xl font-extrabold">${records.length}</div><div class="text-xs text-gray-500">Jumlah Guru Ganti</div></div></div></div>
       <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"><i class="fa-solid fa-calendar-check text-xl"></i></div><div><div class="text-2xl font-extrabold">${records.filter(r=>r.tarikh===today).length}</div><div class="text-xs text-gray-500">Tugasan Hari Ini</div></div></div></div>
@@ -696,47 +700,58 @@
       <p>📌 Jumlah rekod: ${records.length}</p>
     `;
 
-    // ✅ PEMBETULAN: Pengumuman paparkan tugasan HARI INI + AKAN DATANG
-    const upcomingRecords = records.filter(r => r.tarikh >= today);
+    // ✅ PEMAKLUMAN: dengan guru tak hadir + jenis tugasan + catatan
+    const todayRecords = records.filter(r => r.tarikh === today);
     const pemaklumanDiv = document.getElementById('pemaklumanGuruGanti');
     if (!pemaklumanDiv) return;
-    if (upcomingRecords.length === 0) {
-      pemaklumanDiv.innerHTML = '<p class="text-gray-500 text-sm">Tiada tugasan guru ganti untuk dipaparkan.</p>';
+    if (todayRecords.length === 0) {
+      pemaklumanDiv.innerHTML = '<p class="text-gray-500 text-sm">Tiada tugasan guru ganti untuk hari ini.</p>';
     } else {
       const slotOrder = ["7:20-7:50","7:50-8:20","8:20-8:50","8:50-9:20","9:20-9:50","10:10-10:40","10:40-11:10","11:10-11:40","11:40-12:10","12:10-12:40","12:40-1:10"];
-      upcomingRecords.sort((a, b) => {
-        if (a.tarikh !== b.tarikh) return a.tarikh.localeCompare(b.tarikh);
-        return slotOrder.indexOf(a.slot_masa) - slotOrder.indexOf(b.slot_masa);
-      });
-
+      todayRecords.sort((a, b) => slotOrder.indexOf(a.slot_masa) - slotOrder.indexOf(b.slot_masa));
       let html = '<div class="space-y-2">';
-      upcomingRecords.forEach(rec => {
-        const isToday = rec.tarikh === today;
-        const badge = isToday 
-          ? '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-bold ml-2">HARI INI</span>'
-          : `<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold ml-2">${formatDateMY(rec.tarikh)}</span>`;
-        html += `<div class="flex items-center justify-between p-2 ${isToday ? 'bg-yellow-50 border border-yellow-200' : 'bg-gray-50'} rounded-lg text-sm flex-wrap gap-2">
-          <div class="flex-1">
-            <span class="font-semibold text-blue-700">${esc(rec.guru_ganti)}</span>
-            <span class="text-gray-500 mx-2">|</span>
-            <span class="text-indigo-600">${rec.slot_masa}</span>
-            <span class="text-gray-500 mx-2">|</span>
-            <span>${esc(rec.kelas)}</span>
-            <span class="text-gray-500 mx-2">|</span>
-            <span>${esc(rec.mata_pelajaran)}</span>
-            ${badge}
-          </div>
-          <span class="text-xs text-gray-400">${rec.jenis_tugasan ? '📌 ' + esc(rec.jenis_tugasan) : ''}</span>
-        </div>`;
+      todayRecords.forEach(rec => {
+        const jenis = rec.jenis_tugasan || 'Tidak Dinyatakan';
+        const catatan = rec.catatan ? ` — ${esc(rec.catatan)}` : '';
+        const badgeWarna = jenis === 'Cuti Sakit' ? 'bg-red-50 text-red-700 border-red-200'
+                          : jenis === 'Kursus' ? 'bg-purple-50 text-purple-700 border-purple-200'
+                          : jenis === 'Bengkel' ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                          : jenis === 'Mesyuarat' ? 'bg-blue-50 text-blue-700 border-blue-200'
+                          : jenis === 'Taklimat' ? 'bg-cyan-50 text-cyan-700 border-cyan-200'
+                          : jenis === 'Cuti Kecemasan' ? 'bg-orange-50 text-orange-700 border-orange-200'
+                          : 'bg-gray-50 text-gray-700 border-gray-200';
+
+        html += `
+          <div class="p-3 bg-gray-50 rounded-lg text-sm border border-gray-100">
+            <div class="flex flex-wrap items-center gap-2 mb-1">
+              <span class="font-semibold text-red-600">
+                <i class="fa-solid fa-user-xmark mr-1"></i>${esc(rec.guru_tak_hadir)}
+              </span>
+              <span class="border ${badgeWarna} px-2 py-0.5 rounded-full text-xs font-semibold">${esc(jenis)}</span>
+              <span class="text-xs italic text-gray-500">${catatan}</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-xs text-gray-600 pl-1">
+              <span class="text-gray-400">diganti oleh</span>
+              <span class="font-semibold text-emerald-700">
+                <i class="fa-solid fa-user-check mr-1"></i>${esc(rec.guru_ganti)}
+              </span>
+              <span class="text-gray-400">|</span>
+              <span class="text-indigo-600 font-medium"><i class="fa-regular fa-clock mr-1"></i>${rec.slot_masa}</span>
+              <span class="text-gray-400">|</span>
+              <span><i class="fa-solid fa-chalkboard mr-1"></i>${esc(rec.kelas)}</span>
+              <span class="text-gray-400">|</span>
+              <span><i class="fa-solid fa-book mr-1"></i>${esc(rec.mata_pelajaran)}</span>
+            </div>
+          </div>`;
       });
       html += '</div>';
       pemaklumanDiv.innerHTML = html;
     }
   }
 
-  // ANALISIS KEKERAPAN
+  // ==================== ANALISIS KEKERAPAN ====================
   let analisisView = { mode: 'mingguan', offset: 0 };
-  function dateToStr(d) { return getLocalDateStr(d); }
+  function dateToStr(d) { const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0'); return `${y}-${m}-${dd}`; }
   window.tukarModAnalisis = (mode) => { analisisView.mode = mode; analisisView.offset = 0; renderAnalisisKekerapan(); };
   window.analisisNavigate = (dir) => { analisisView.offset += dir; renderAnalisisKekerapan(); };
 
@@ -918,7 +933,6 @@
         doc.text(`Tarikh: ${formatDateMY(selectedDate)}`, marginLeft, y);
         doc.setFont('helvetica', 'normal');
       } else {
-        // ✅ PEMBETULAN: Guna waktu tempatan
         doc.text(`Tarikh Cetakan: ${formatDateMY(getLocalDateStr(new Date()))}`, marginLeft, y);
       }
       y += 7;
@@ -1050,6 +1064,7 @@
     }
   };
 
+  // Mula
   window.addEventListener('DOMContentLoaded', async () => {
     if (!supabaseClient) { showToast('Gagal menyambung ke pangkalan data.', 'error'); return; }
     await renderTable();
