@@ -62,7 +62,7 @@
         <div id="analisisKekerapan"></div>
       </div>
       <div class="bg-white rounded-2xl shadow p-5">
-        <h3 class="font-bold mb-3"><i class="fa-solid fa-bullhorn text-blue-600 mr-2"></i>Pemakluman Tugasan Guru Ganti Hari Ini</h3>
+        <h3 class="font-bold mb-3"><i class="fa-solid fa-bullhorn text-blue-600 mr-2"></i>Pemakluman Tugasan Guru Ganti</h3>
         <div id="pemaklumanGuruGanti"></div>
       </div>
     </div>
@@ -92,7 +92,6 @@
             <input type="date" id="tarikhGanti" class="w-full px-4 py-2.5 rounded-xl border" required onchange="syncHariFromTarikh()">
             <p class="text-xs text-gray-400 mt-1"><i class="fa-solid fa-circle-info text-blue-500"></i> Hanya Isnin–Jumaat dibenarkan</p>
           </div>
-          <!-- ✅ BAHARU: Jenis Tugasan -->
           <div>
             <label class="block text-sm font-semibold">Jenis Tugasan <span class="text-red-500">*</span></label>
             <select id="jenisTugasan" class="w-full px-4 py-2.5 rounded-xl border" required>
@@ -108,7 +107,6 @@
               <option>Lain-lain</option>
             </select>
           </div>
-          <!-- ✅ BAHARU: Butiran / Catatan -->
           <div>
             <label class="block text-sm font-semibold">Butiran / Catatan</label>
             <input type="text" id="catatan" class="w-full px-4 py-2.5 rounded-xl border" placeholder="Cth: Kursus Pemantapan KSSR di PPD">
@@ -169,7 +167,6 @@
         <div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3">#</th><th class="p-3">Guru Tak Hadir</th><th class="p-3">Jenis</th><th class="p-3">Slot</th><th class="p-3">Guru Ganti</th><th class="p-3">Kelas</th><th class="p-3">MP</th><th class="p-3">Tarikh</th><th class="p-3">Tindakan</th></tr></thead><tbody id="tbodyRekod"></tbody></table></div>
       </div>
 
-      <!-- JADUAL PENGESAHAN GURU GANTI (PDF A4) dengan Penapis Tarikh -->
       <div class="bg-white rounded-2xl shadow p-5">
         <h3 class="font-bold mb-2">
           <i class="fa-solid fa-file-signature text-red-600 mr-2"></i>
@@ -315,6 +312,16 @@
   let penjanaCount = parseInt(localStorage.getItem('penjanaCount') || '0');
   let cachedJadual = [];
 
+  // ============================================================
+  // ✅ PEMBETULAN: Fungsi tarikh waktu tempatan Malaysia (elak timezone UTC)
+  // ============================================================
+  function getLocalDateStr(d = new Date()) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dd}`;
+  }
+
   window.syncHariFromTarikh = () => {
     const tarikh = document.getElementById('tarikhGanti').value;
     const hariSelect = document.getElementById('hariGanti');
@@ -373,7 +380,8 @@
     }
     if (!supabaseClient) return;
 
-    const tarikhSemak = tarikhPilih || new Date().toISOString().split('T')[0];
+    // ✅ PEMBETULAN: Guna waktu tempatan
+    const tarikhSemak = tarikhPilih || getLocalDateStr(new Date());
 
     const [{ data: jadual }, { data: rekodTarikhIni }] = await Promise.all([
       supabaseClient.from('jadual_waktu').select('*'),
@@ -562,7 +570,8 @@
     const slotDiajar = jadual.filter(j => j.nama_guru === guru && j.hari === hari);
     if (!slotDiajar.length) return document.getElementById('hasilCarian').innerHTML = '<p class="text-gray-500">Tiada kelas pada hari ini.</p>';
     const semuaGuru = [...new Set(jadual.map(j => j.nama_guru))].filter(n => n !== guru);
-    const today = new Date().toISOString().split('T')[0];
+    // ✅ PEMBETULAN: Guna waktu tempatan
+    const today = getLocalDateStr(new Date());
     const { data: rekod } = await supabaseClient.from('rekod_guru_ganti').select('*').eq('tarikh', today);
     let html = '';
     slotDiajar.forEach(s => {
@@ -591,7 +600,8 @@
   };
 
   window.pilihGuruGanti = (guruTakHadir, hari, slot, kelas, mp, guruGanti) => {
-    const today = new Date().toISOString().split('T')[0];
+    // ✅ PEMBETULAN: Guna waktu tempatan
+    const today = getLocalDateStr(new Date());
     document.getElementById('tarikhGanti').value = today;
     document.getElementById('guruTakHadir').value = guruTakHadir;
     document.getElementById('hariGanti').value = hari;
@@ -657,7 +667,8 @@
     if (!supabaseClient) return;
     const { data: records } = await supabaseClient.from('rekod_guru_ganti').select('*');
     if (!records) return;
-    const today = new Date().toISOString().split('T')[0];
+    // ✅ PEMBETULAN: Guna waktu tempatan
+    const today = getLocalDateStr(new Date());
     document.getElementById('statCards').innerHTML = `
       <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600"><i class="fa-solid fa-user-check text-xl"></i></div><div><div class="text-2xl font-extrabold">${records.length}</div><div class="text-xs text-gray-500">Jumlah Guru Ganti</div></div></div></div>
       <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"><i class="fa-solid fa-calendar-check text-xl"></i></div><div><div class="text-2xl font-extrabold">${records.filter(r=>r.tarikh===today).length}</div><div class="text-xs text-gray-500">Tugasan Hari Ini</div></div></div></div>
@@ -668,7 +679,7 @@
     const now = new Date();
     const monday = new Date(now); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
     const friday = new Date(monday); friday.setDate(monday.getDate() + 4);
-    const mondayStr = monday.toISOString().split('T')[0], fridayStr = friday.toISOString().split('T')[0];
+    const mondayStr = getLocalDateStr(monday), fridayStr = getLocalDateStr(friday);
     const thisWeek = records.filter(r => r.tarikh >= mondayStr && r.tarikh <= fridayStr);
     const totalPossible = 5 * 11;
     const percent = totalPossible ? Math.round((thisWeek.length / totalPossible) * 100) : 0;
@@ -685,17 +696,38 @@
       <p>📌 Jumlah rekod: ${records.length}</p>
     `;
 
-    const todayRecords = records.filter(r => r.tarikh === today);
+    // ✅ PEMBETULAN: Pengumuman paparkan tugasan HARI INI + AKAN DATANG
+    const upcomingRecords = records.filter(r => r.tarikh >= today);
     const pemaklumanDiv = document.getElementById('pemaklumanGuruGanti');
     if (!pemaklumanDiv) return;
-    if (todayRecords.length === 0) {
-      pemaklumanDiv.innerHTML = '<p class="text-gray-500 text-sm">Tiada tugasan guru ganti untuk hari ini.</p>';
+    if (upcomingRecords.length === 0) {
+      pemaklumanDiv.innerHTML = '<p class="text-gray-500 text-sm">Tiada tugasan guru ganti untuk dipaparkan.</p>';
     } else {
       const slotOrder = ["7:20-7:50","7:50-8:20","8:20-8:50","8:50-9:20","9:20-9:50","10:10-10:40","10:40-11:10","11:10-11:40","11:40-12:10","12:10-12:40","12:40-1:10"];
-      todayRecords.sort((a, b) => slotOrder.indexOf(a.slot_masa) - slotOrder.indexOf(b.slot_masa));
+      upcomingRecords.sort((a, b) => {
+        if (a.tarikh !== b.tarikh) return a.tarikh.localeCompare(b.tarikh);
+        return slotOrder.indexOf(a.slot_masa) - slotOrder.indexOf(b.slot_masa);
+      });
+
       let html = '<div class="space-y-2">';
-      todayRecords.forEach(rec => {
-        html += `<div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg text-sm"><div><span class="font-semibold text-blue-700">${esc(rec.guru_ganti)}</span><span class="text-gray-500 mx-2">|</span><span class="text-indigo-600">${rec.slot_masa}</span><span class="text-gray-500 mx-2">|</span><span>${esc(rec.kelas)}</span><span class="text-gray-500 mx-2">|</span><span>${esc(rec.mata_pelajaran)}</span></div><span class="text-xs text-gray-400">${rec.tarikh}</span></div>`;
+      upcomingRecords.forEach(rec => {
+        const isToday = rec.tarikh === today;
+        const badge = isToday 
+          ? '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-bold ml-2">HARI INI</span>'
+          : `<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold ml-2">${formatDateMY(rec.tarikh)}</span>`;
+        html += `<div class="flex items-center justify-between p-2 ${isToday ? 'bg-yellow-50 border border-yellow-200' : 'bg-gray-50'} rounded-lg text-sm flex-wrap gap-2">
+          <div class="flex-1">
+            <span class="font-semibold text-blue-700">${esc(rec.guru_ganti)}</span>
+            <span class="text-gray-500 mx-2">|</span>
+            <span class="text-indigo-600">${rec.slot_masa}</span>
+            <span class="text-gray-500 mx-2">|</span>
+            <span>${esc(rec.kelas)}</span>
+            <span class="text-gray-500 mx-2">|</span>
+            <span>${esc(rec.mata_pelajaran)}</span>
+            ${badge}
+          </div>
+          <span class="text-xs text-gray-400">${rec.jenis_tugasan ? '📌 ' + esc(rec.jenis_tugasan) : ''}</span>
+        </div>`;
       });
       html += '</div>';
       pemaklumanDiv.innerHTML = html;
@@ -704,7 +736,7 @@
 
   // ANALISIS KEKERAPAN
   let analisisView = { mode: 'mingguan', offset: 0 };
-  function dateToStr(d) { const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0'); return `${y}-${m}-${dd}`; }
+  function dateToStr(d) { return getLocalDateStr(d); }
   window.tukarModAnalisis = (mode) => { analisisView.mode = mode; analisisView.offset = 0; renderAnalisisKekerapan(); };
   window.analisisNavigate = (dir) => { analisisView.offset += dir; renderAnalisisKekerapan(); };
 
@@ -811,7 +843,6 @@
     return records.filter(r => r.tarikh === selected);
   }
 
-  // ✅ PRATONTON dengan lajur baharu (Jenis & Butiran)
   window.previewVerificationTable = async () => {
     const preview = document.getElementById('verificationPreview');
     if (!supabaseClient) return preview.innerHTML = '<p class="text-red-600 text-sm">Pangkalan data tidak bersambung.</p>';
@@ -852,7 +883,6 @@
     preview.innerHTML = html;
   };
 
-  // ✅ PDF LANDSCAPE dengan 8 lajur lengkap
   window.generateVerificationPDF = async () => {
     if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
     const { data: records } = await supabaseClient.from('rekod_guru_ganti').select('*').order('tarikh', { ascending: true });
@@ -864,7 +894,6 @@
 
     try {
       const { jsPDF } = window.jspdf;
-      // ✅ Landscape A4
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
       const pageWidth = 297;
@@ -875,7 +904,6 @@
       const usableWidth = pageWidth - marginLeft - marginRight;
       let y = marginTop;
 
-      // Header
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(13);
       doc.text('JADUAL PENGESAHAN GURU GANTI', pageWidth / 2, y, { align: 'center' });
@@ -890,14 +918,14 @@
         doc.text(`Tarikh: ${formatDateMY(selectedDate)}`, marginLeft, y);
         doc.setFont('helvetica', 'normal');
       } else {
-        doc.text(`Tarikh Cetakan: ${formatDateMY(new Date().toISOString().split('T')[0])}`, marginLeft, y);
+        // ✅ PEMBETULAN: Guna waktu tempatan
+        doc.text(`Tarikh Cetakan: ${formatDateMY(getLocalDateStr(new Date()))}`, marginLeft, y);
       }
       y += 7;
 
       const grouped = groupRecordsByDate(filtered);
       const dates = Object.keys(grouped);
 
-      // ✅ 8 lajur (jumlah = 265mm, muat dalam 277mm usable)
       const colWidths = [22, 48, 26, 52, 48, 18, 28, 23];
       const headers = ['Slot', 'Guru Tidak Hadir', 'Jenis Tugasan', 'Butiran / Catatan', 'Guru Ganti', 'Kelas', 'Mata Pelajaran', 'Tandatangan'];
       const rowHeight = 11;
@@ -988,7 +1016,6 @@
             x += colWidths[i];
           });
 
-          // Garis tandatangan
           const sigX = marginLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5] + colWidths[6];
           doc.setDrawColor(150, 150, 150);
           doc.line(sigX + 3, y + thisRowHeight - 2.5, sigX + colWidths[7] - 3, y + thisRowHeight - 2.5);
@@ -1014,7 +1041,7 @@
 
       const filename = selectedDate 
         ? `Jadual_Pengesahan_${selectedDate}.pdf`
-        : `Jadual_Pengesahan_Semua_Tarikh_${new Date().toISOString().split('T')[0]}.pdf`;
+        : `Jadual_Pengesahan_Semua_Tarikh_${getLocalDateStr(new Date())}.pdf`;
       doc.save(filename);
       showToast('PDF berjaya dijana!', 'success');
     } catch (e) {
