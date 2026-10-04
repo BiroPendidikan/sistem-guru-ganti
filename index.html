@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>eMMI - Sistem Pengurusan Guru Ganti & Penjana Bahan KSSR</title>
+  <title>eMMI - Sistem Pengurusan Guru Ganti & Penjana Bahan PdPC</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -400,7 +400,7 @@
       return !adaPdPC && !sudahTugasGanti;
     });
 
-    // ✅ PEMBETULAN: kira hanya SLOT PdPC SEBENAR (kecuali Perhimpunan & kelas kosong)
+    // ✅ Kira hanya SLOT PdPC SEBENAR (kecuali Perhimpunan & kelas kosong)
     const guruDenganBilangan = tersedia.map(nama => {
       const bilangan = cachedJadual.filter(j =>
         j.nama_guru === nama &&
@@ -415,7 +415,7 @@
     if (!guruDenganBilangan.length) {
       selectGuru.innerHTML = '<option value="">⚠️ Tiada guru tersedia</option>';
     } else {
-      // ✅ PEMBETULAN: ambang baharu + ikon konsisten
+      // ✅ Ambang baharu + ikon konsisten
       selectGuru.innerHTML = '<option value="">-- Pilih Guru Ganti --</option>' +
         guruDenganBilangan.map(g => {
           const icon = g.bilangan === 0 ? '🟢'
@@ -548,25 +548,39 @@
     showToast('Jadual ditambah!', 'success');
   };
   window.padamJadual = async (id) => { if (!supabaseClient) return; await supabaseClient.from('jadual_waktu').delete().eq('id', id); renderJadual(); };
+
+  // ✅ PEMBETULAN: Import CSV - buang tanda petikan (") dari semua medan
   window.importCSV = (event) => {
     if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
     const file = event.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = async (e) => {
-      const lines = e.target.result.split('\n').filter(l => l.trim());
+      const text = e.target.result.replace(/^\uFEFF/, '');
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
       const records = [];
       for (let i = 1; i < lines.length; i++) {
-        const cols = lines[i].split(',').map(c => c.trim());
-        if (cols.length >= 5) records.push({ nama_guru: cols[0], hari: cols[1], slot_masa: cols[2], kelas: cols[3], mata_pelajaran: cols[4] });
+        // ✅ Buang SEMUA tanda petikan (") dari baris
+        const cleanLine = lines[i].replace(/"/g, '');
+        const cols = cleanLine.split(',').map(c => c.trim());
+        if (cols.length >= 5 && cols[0]) {
+          records.push({
+            nama_guru: cols[0],
+            hari: cols[1],
+            slot_masa: cols[2],
+            kelas: cols[3],
+            mata_pelajaran: cols[4]
+          });
+        }
       }
       if (!records.length) return showToast('Tiada rekod sah.', 'error');
       const { error } = await supabaseClient.from('jadual_waktu').insert(records);
       if (error) return showToast('Gagal import: ' + error.message, 'error');
       renderJadual();
-      showToast(`Berjaya import ${records.length} rekod!`, 'success');
+      showToast(`✅ Berjaya import ${records.length} rekod!`, 'success');
+      event.target.value = '';
     };
-    reader.readAsText(file);
+    reader.readAsText(file, 'UTF-8');
   };
 
   // Carian guru ganti
@@ -578,7 +592,7 @@
     document.getElementById('cariNamaGuru').innerHTML = '<option value="">-- Pilih Guru Tidak Hadir --</option>' + unique.map(n => `<option>${n}</option>`).join('');
   }
 
-  // ✅ PEMBETULAN: Carian slot kosong dengan warna/ikon konsisten + ambang baharu
+  // ✅ Carian slot kosong dengan warna/ikon konsisten + ambang baharu
   window.cariSlotKosong = async () => {
     if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
     const guru = document.getElementById('cariNamaGuru').value;
@@ -594,7 +608,6 @@
     slotDiajar.forEach(s => {
       const tersedia = semuaGuru.filter(n => !jadual.some(j => j.nama_guru === n && j.hari === hari && j.slot_masa === s.slot_masa) && !rekod.some(r => r.guru_ganti === n && r.slot_masa === s.slot_masa));
 
-      // ✅ PEMBETULAN: kira hanya slot PdPC sebenar (kecuali Perhimpunan & kelas kosong)
       const tersediaDenganBilangan = tersedia.map(n => ({
         nama: n,
         bilangan: jadual.filter(j =>
@@ -610,7 +623,6 @@
       if (tersediaDenganBilangan.length) {
         html += `<div class="flex flex-wrap gap-2 mt-2">`;
         tersediaDenganBilangan.forEach(g => {
-          // ✅ PEMBETULAN: ikon & warna latar KONSISTEN + ambang baharu
           const warna = g.bilangan === 0 ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
                        : g.bilangan <= 4 ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
                        : g.bilangan <= 7 ? 'bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200'
