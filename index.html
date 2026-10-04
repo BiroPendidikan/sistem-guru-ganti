@@ -135,7 +135,7 @@
             <select id="guruGanti" class="w-full px-4 py-2.5 rounded-xl border" required>
               <option value="">-- Pilih Tarikh, Slot & Hari Dahulu --</option>
             </select>
-            <p class="text-xs text-gray-400 mt-1"><i class="fa-solid fa-lightbulb text-amber-500"></i> 🟢 0 waktu · 🟡 1-3 · 🟠 4-5 · 🔴 6+ waktu</p>
+            <p class="text-xs text-gray-400 mt-1"><i class="fa-solid fa-lightbulb text-amber-500"></i> 🟢 0 waktu · 🟡 1-4 · 🟠 5-7 · 🔴 8+ waktu</p>
           </div>
           <div>
             <label class="block text-sm font-semibold">Kelas</label>
@@ -371,7 +371,7 @@
   }
   function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-  // ========== SMART: Auto isi dropdown guru ganti dengan bilangan waktu ==========
+  // ========== SMART: Auto isi dropdown guru ganti dengan bilangan waktu (AMBANG BAHARU) ==========
   async function updateGuruGantiDropdown() {
     const hari = document.getElementById('hariGanti').value;
     const slot = document.getElementById('slotMasa').value;
@@ -400,17 +400,28 @@
       return !adaPdPC && !sudahTugasGanti;
     });
 
+    // ✅ PEMBETULAN: kira hanya SLOT PdPC SEBENAR (kecuali Perhimpunan & kelas kosong)
     const guruDenganBilangan = tersedia.map(nama => {
-      const bilangan = cachedJadual.filter(j => j.nama_guru === nama && j.hari === hari).length;
+      const bilangan = cachedJadual.filter(j =>
+        j.nama_guru === nama &&
+        j.hari === hari &&
+        j.kelas &&
+        j.kelas !== '-' &&
+        j.mata_pelajaran !== 'Perhimpunan'
+      ).length;
       return { nama, bilangan };
     }).sort((a, b) => a.bilangan - b.bilangan);
 
     if (!guruDenganBilangan.length) {
       selectGuru.innerHTML = '<option value="">⚠️ Tiada guru tersedia</option>';
     } else {
+      // ✅ PEMBETULAN: ambang baharu + ikon konsisten
       selectGuru.innerHTML = '<option value="">-- Pilih Guru Ganti --</option>' +
         guruDenganBilangan.map(g => {
-          const icon = g.bilangan === 0 ? '🟢' : g.bilangan <= 3 ? '🟡' : g.bilangan <= 5 ? '🟠' : '🔴';
+          const icon = g.bilangan === 0 ? '🟢'
+                     : g.bilangan <= 4 ? '🟡'
+                     : g.bilangan <= 7 ? '🟠'
+                     : '🔴';
           return `<option value="${g.nama}">${icon} ${g.nama} — ${g.bilangan} waktu</option>`;
         }).join('');
     }
@@ -567,6 +578,7 @@
     document.getElementById('cariNamaGuru').innerHTML = '<option value="">-- Pilih Guru Tidak Hadir --</option>' + unique.map(n => `<option>${n}</option>`).join('');
   }
 
+  // ✅ PEMBETULAN: Carian slot kosong dengan warna/ikon konsisten + ambang baharu
   window.cariSlotKosong = async () => {
     if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
     const guru = document.getElementById('cariNamaGuru').value;
@@ -581,23 +593,35 @@
     let html = '';
     slotDiajar.forEach(s => {
       const tersedia = semuaGuru.filter(n => !jadual.some(j => j.nama_guru === n && j.hari === hari && j.slot_masa === s.slot_masa) && !rekod.some(r => r.guru_ganti === n && r.slot_masa === s.slot_masa));
+
+      // ✅ PEMBETULAN: kira hanya slot PdPC sebenar (kecuali Perhimpunan & kelas kosong)
       const tersediaDenganBilangan = tersedia.map(n => ({
         nama: n,
-        bilangan: jadual.filter(j => j.nama_guru === n && j.hari === hari).length
+        bilangan: jadual.filter(j =>
+          j.nama_guru === n &&
+          j.hari === hari &&
+          j.kelas &&
+          j.kelas !== '-' &&
+          j.mata_pelajaran !== 'Perhimpunan'
+        ).length
       })).sort((a, b) => a.bilangan - b.bilangan);
 
       html += `<div class="p-4 bg-gray-50 rounded-xl border"><p class="font-semibold">${s.slot_masa} - ${s.kelas} (${s.mata_pelajaran})</p>`;
       if (tersediaDenganBilangan.length) {
         html += `<div class="flex flex-wrap gap-2 mt-2">`;
         tersediaDenganBilangan.forEach(g => {
+          // ✅ PEMBETULAN: ikon & warna latar KONSISTEN + ambang baharu
           const warna = g.bilangan === 0 ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
-                       : g.bilangan <= 3 ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
-                       : g.bilangan <= 5 ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+                       : g.bilangan <= 4 ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+                       : g.bilangan <= 7 ? 'bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200'
                        : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200';
-          const icon = g.bilangan === 0 ? '🟢' : g.bilangan <= 3 ? '🟡' : g.bilangan <= 5 ? '🟠' : '🔴';
+          const icon = g.bilangan === 0 ? '🟢'
+                     : g.bilangan <= 4 ? '🟡'
+                     : g.bilangan <= 7 ? '🟠'
+                     : '🔴';
           html += `<button onclick="pilihGuruGanti('${guru}','${hari}','${s.slot_masa}','${s.kelas}','${s.mata_pelajaran}','${g.nama}')" class="px-3 py-1.5 ${warna} rounded-lg text-sm font-medium transition" title="${g.bilangan} waktu">${icon} ${g.nama} <span class="font-bold ml-1">(${g.bilangan} waktu)</span></button>`;
         });
-        html += `</div><p class="text-xs text-gray-500 mt-2"><i class="fa-solid fa-lightbulb text-amber-500"></i> Guru dengan bilangan waktu paling sedikit dipaparkan dahulu. 🟢 0 · 🟡 1-3 · 🟠 4-5 · 🔴 6+</p>`;
+        html += `</div><p class="text-xs text-gray-500 mt-2"><i class="fa-solid fa-lightbulb text-amber-500"></i> Guru dengan bilangan waktu paling sedikit dipaparkan dahulu. 🟢 0 · 🟡 1-4 · 🟠 5-7 · 🔴 8+</p>`;
       } else { html += '<p class="text-red-500 text-sm">⚠️ Tiada guru tersedia.</p>'; }
       html += '</div>';
     });
@@ -702,7 +726,6 @@
       <p>📌 Jumlah rekod: ${records.length}</p>
     `;
 
-    // ✅ PEMAKLUMAN: dengan guru tak hadir + jenis tugasan + catatan
     const todayRecords = records.filter(r => r.tarikh === today);
     const pemaklumanDiv = document.getElementById('pemaklumanGuruGanti');
     if (!pemaklumanDiv) return;
