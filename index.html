@@ -322,6 +322,25 @@
     return `${y}-${m}-${dd}`;
   }
 
+  // ✅ PEMBETULAN: Normalisasi tarikh dari Supabase (elak isu timestamptz vs date)
+  // Fungsi ini menerima apa-apa format tarikh dan pulangkan "YYYY-MM-DD" sahaja
+  function normalizeDate(val) {
+    if (!val) return '';
+    // Jika sudah "YYYY-MM-DD" sahaja
+    if (typeof val === 'string') {
+      // Buang bahagian masa jika ada (T00:00:00+00:00)
+      const s = val.trim();
+      const match = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) return `${match[1]}-${match[2]}-${match[3]}`;
+      // Cuba parse sebagai Date
+      const d = new Date(s);
+      if (!isNaN(d.getTime())) return getLocalDateStr(d);
+    }
+    // Jika Date object
+    if (val instanceof Date && !isNaN(val.getTime())) return getLocalDateStr(val);
+    return '';
+  }
+
   // ========== Selaras Hari dengan Tarikh ==========
   window.syncHariFromTarikh = () => {
     const tarikh = document.getElementById('tarikhGanti').value;
@@ -396,7 +415,7 @@
     const semuaGuru = [...new Set(cachedJadual.map(j => j.nama_guru))];
     const tersedia = semuaGuru.filter(nama => {
       const adaPdPC = cachedJadual.some(j => j.nama_guru === nama && j.hari === hari && j.slot_masa === slot);
-      const sudahTugasGanti = rekodTarikhIni.some(r => r.guru_ganti === nama && r.slot_masa === slot);
+      const sudahTugasGanti = (rekodTarikhIni || []).some(r => r.guru_ganti === nama && r.slot_masa === slot);
       return !adaPdPC && !sudahTugasGanti;
     });
 
@@ -458,7 +477,7 @@
         <td class="p-3 text-emerald-600">${esc(r.guru_ganti)}</td>
         <td class="p-3"><span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs">${esc(r.kelas)}</span></td>
         <td class="p-3">${esc(r.mata_pelajaran)}</td>
-        <td class="p-3 text-xs">${r.tarikh}</td>
+        <td class="p-3 text-xs">${normalizeDate(r.tarikh)}</td>
         <td class="p-3 flex gap-1"><button onclick="padamRekod(${r.id})" class="text-red-500"><i class="fa-solid fa-trash-can"></i></button><button onclick="janaBahanDariRekod('${r.kelas}','${r.mata_pelajaran}','${r.slot_masa}')" class="text-purple-600" title="Jana Bahan"><i class="fa-solid fa-wand-magic-sparkles"></i></button></td>
       </tr>
     `).join('');
@@ -519,7 +538,7 @@
     const { data } = await supabaseClient.from('rekod_guru_ganti').select('*');
     if (!data?.length) return showToast('Tiada rekod.', 'error');
     let csv = 'Bil,Guru Tak Hadir,Jenis Tugasan,Butiran,Slot Masa,Guru Ganti,Kelas,Mata Pelajaran,Tarikh\n';
-    data.forEach((r, i) => csv += `${i+1},"${r.guru_tak_hadir}","${r.jenis_tugasan || ''}","${r.catatan || ''}","${r.slot_masa}","${r.guru_ganti}","${r.kelas}","${r.mata_pelajaran}","${r.tarikh}"\n`);
+    data.forEach((r, i) => csv += `${i+1},"${r.guru_tak_hadir}","${r.jenis_tugasan || ''}","${r.catatan || ''}","${r.slot_masa}","${r.guru_ganti}","${r.kelas}","${r.mata_pelajaran}","${normalizeDate(r.tarikh)}"\n`);
     const blob = new Blob(['\uFEFF'+csv], {type:'text/csv'});
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'rekod_ganti.csv'; a.click();
   };
@@ -603,7 +622,9 @@
     if (!slotDiajar.length) return document.getElementById('hasilCarian').innerHTML = '<p class="text-gray-500">Tiada kelas pada hari ini.</p>';
     const semuaGuru = [...new Set(jadual.map(j => j.nama_guru))].filter(n => n !== guru);
     const today = getLocalDateStr(new Date());
-    const { data: rekod } = await supabaseClient.from('rekod_guru_ganti').select('*').eq('tarikh', today);
+    const { data: rekodSemua } = await supabaseClient.from('rekod_guru_ganti').select('*');
+    // ✅ PEMBETULAN: Normalisasi tarikh sebelum banding
+    const rekod = (rekodSemua || []).filter(r => normalizeDate(r.tarikh) === today);
     let html = '';
     slotDiajar.forEach(s => {
       const tersedia = semuaGuru.filter(n => !jadual.some(j => j.nama_guru === n && j.hari === hari && j.slot_masa === s.slot_masa) && !rekod.some(r => r.guru_ganti === n && r.slot_masa === s.slot_masa));
@@ -711,9 +732,12 @@
     if (!records) return;
     const today = getLocalDateStr(new Date());
 
+    // ✅ PEMBETULAN: Normalisasi tarikh sebelum banding (elak isu timestamptz vs date)
+    const recordsNorm = records.map(r => ({ ...r, _tarikh: normalizeDate(r.tarikh) }));
+
     document.getElementById('statCards').innerHTML = `
       <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600"><i class="fa-solid fa-user-check text-xl"></i></div><div><div class="text-2xl font-extrabold">${records.length}</div><div class="text-xs text-gray-500">Jumlah Guru Ganti</div></div></div></div>
-      <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"><i class="fa-solid fa-calendar-check text-xl"></i></div><div><div class="text-2xl font-extrabold">${records.filter(r=>r.tarikh===today).length}</div><div class="text-xs text-gray-500">Tugasan Hari Ini</div></div></div></div>
+      <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"><i class="fa-solid fa-calendar-check text-xl"></i></div><div><div class="text-2xl font-extrabold">${recordsNorm.filter(r=>r._tarikh===today).length}</div><div class="text-xs text-gray-500">Tugasan Hari Ini</div></div></div></div>
       <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600"><i class="fa-solid fa-robot text-xl"></i></div><div><div class="text-2xl font-extrabold">${penjanaCount}</div><div class="text-xs text-gray-500">Bahan Dijana AI</div></div></div></div>
       <div class="bg-white rounded-2xl p-5 shadow"><div class="flex items-start gap-3"><div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600"><i class="fa-solid fa-children text-xl"></i></div><div><div class="text-2xl font-extrabold">${new Set(records.map(r=>r.kelas.toLowerCase())).size}</div><div class="text-xs text-gray-500">Kelas Terlibat</div></div></div></div>
     `;
@@ -722,7 +746,8 @@
     const monday = new Date(now); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
     const friday = new Date(monday); friday.setDate(monday.getDate() + 4);
     const mondayStr = getLocalDateStr(monday), fridayStr = getLocalDateStr(friday);
-    const thisWeek = records.filter(r => r.tarikh >= mondayStr && r.tarikh <= fridayStr);
+    // ✅ PEMBETULAN: Guna recordsNorm untuk banding tarikh mingguan
+    const thisWeek = recordsNorm.filter(r => r._tarikh >= mondayStr && r._tarikh <= fridayStr);
     const totalPossible = 5 * 11;
     const percent = totalPossible ? Math.round((thisWeek.length / totalPossible) * 100) : 0;
     const freqMP = {};
@@ -738,7 +763,8 @@
       <p>📌 Jumlah rekod: ${records.length}</p>
     `;
 
-    const todayRecords = records.filter(r => r.tarikh === today);
+    // ✅ PEMBETULAN UTAMA: Guna recordsNorm supaya banding tarikh tepat
+    const todayRecords = recordsNorm.filter(r => r._tarikh === today);
     const pemaklumanDiv = document.getElementById('pemaklumanGuruGanti');
     if (!pemaklumanDiv) return;
     if (todayRecords.length === 0) {
@@ -820,7 +846,11 @@
       label = `Tahun ${y}`;
     }
     const startStr = dateToStr(start), endStr = dateToStr(end);
-    const filtered = records.filter(r => r.tarikh >= startStr && r.tarikh <= endStr);
+    // ✅ PEMBETULAN: Normalisasi tarikh sebelum banding
+    const filtered = records.filter(r => {
+      const t = normalizeDate(r.tarikh);
+      return t >= startStr && t <= endStr;
+    });
     const freq = {};
     filtered.forEach(r => { const mp = r.mata_pelajaran || 'Tidak Diketahui'; freq[mp] = (freq[mp] || 0) + 1; });
     const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
@@ -856,7 +886,9 @@
   // ============================================================
   function formatDateMY(dateStr) {
     if (!dateStr) return '-';
-    const d = new Date(dateStr + 'T00:00:00');
+    const norm = normalizeDate(dateStr);
+    if (!norm) return '-';
+    const d = new Date(norm + 'T00:00:00');
     const hari = ['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'][d.getDay()];
     const bulan = ['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'][d.getMonth()];
     return `${hari}, ${d.getDate()} ${bulan} ${d.getFullYear()}`;
@@ -865,8 +897,10 @@
   function groupRecordsByDate(records) {
     const grouped = {};
     records.forEach(r => {
-      if (!grouped[r.tarikh]) grouped[r.tarikh] = [];
-      grouped[r.tarikh].push(r);
+      const key = normalizeDate(r.tarikh);
+      if (!key) return;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(r);
     });
     return Object.keys(grouped).sort().reduce((acc, d) => { acc[d] = grouped[d]; return acc; }, {});
   }
@@ -879,7 +913,8 @@
     if (!supabaseClient) return;
     const { data: records } = await supabaseClient.from('rekod_guru_ganti').select('tarikh');
     if (!records?.length) return;
-    const uniqueDates = [...new Set(records.map(r => r.tarikh))].sort();
+    // ✅ PEMBETULAN: Normalisasi tarikh sebelum buat senarai unik
+    const uniqueDates = [...new Set(records.map(r => normalizeDate(r.tarikh)).filter(Boolean))].sort();
     uniqueDates.forEach(d => {
       const opt = document.createElement('option');
       opt.value = d;
@@ -892,7 +927,8 @@
   function filterRecordsBySelectedDate(records) {
     const selected = document.getElementById('pdfTarikhPilih')?.value || '';
     if (!selected) return records;
-    return records.filter(r => r.tarikh === selected);
+    // ✅ PEMBETULAN: Normalisasi untuk banding
+    return records.filter(r => normalizeDate(r.tarikh) === selected);
   }
 
   window.previewVerificationTable = async () => {
