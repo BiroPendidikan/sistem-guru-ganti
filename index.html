@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- ===== TAMBAHAN 1: Pustaka SheetJS untuk eksport Excel ===== -->
+  <!-- Pustaka SheetJS untuk eksport Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     .sidebar { transition: transform 0.3s ease; }
@@ -252,7 +252,7 @@
         </div>
       </form>
 
-      <!-- ===== TAMBAHAN 2: Butang eksport jadual waktu ===== -->
+      <!-- ===== Senarai Jadual + Filter Guru + Eksport ===== -->
       <div class="bg-white rounded-2xl shadow p-5">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
           <h3 class="font-bold">Senarai Jadual</h3>
@@ -268,13 +268,46 @@
             </button>
           </div>
         </div>
+
+        <!-- Filter Guru -->
+        <div class="flex flex-wrap gap-3 items-end mb-4 p-3 bg-blue-50 border border-blue-100 rounded-xl">
+          <div class="flex-1 min-w-[220px]">
+            <label class="block text-xs font-semibold text-blue-800 mb-1">
+              <i class="fa-solid fa-filter mr-1"></i> Tapis Mengikut Guru
+            </label>
+            <select id="jadualFilterGuru" onchange="renderJadual()" class="w-full px-4 py-2.5 rounded-xl border bg-white">
+              <option value="">👥 Semua Guru</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="jadualCounter" class="text-xs text-blue-700 bg-white border border-blue-200 px-3 py-2 rounded-xl">0 rekod</span>
+            <button onclick="resetFilterJadual()" class="border border-blue-300 bg-white text-blue-700 px-4 py-2.5 rounded-xl text-sm hover:bg-blue-100" title="Reset filter">
+              <i class="fa-solid fa-rotate-left"></i> Reset
+            </button>
+          </div>
+        </div>
         <p class="text-xs text-gray-400 mb-3">
           <i class="fa-solid fa-circle-info text-blue-500"></i>
-          Pilih format eksport untuk simpanan / backup data jadual waktu guru.
+          Pilih guru untuk melihat & menyunting jadual beliau sahaja. Butang <i class="fa-solid fa-pen-to-square text-blue-600"></i> untuk edit slot (elak bertindih), <i class="fa-solid fa-trash text-red-500"></i> untuk padam.
         </p>
-        <div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3">Nama Guru</th><th class="p-3">Hari</th><th class="p-3">Slot</th><th class="p-3">Kelas</th><th class="p-3">MP</th><th class="p-3"></th></tr></thead><tbody id="tbodyJadual"></tbody></table></div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="p-3 text-left">Nama Guru</th>
+                <th class="p-3 text-left">Hari</th>
+                <th class="p-3 text-left">Slot</th>
+                <th class="p-3 text-left">Kelas</th>
+                <th class="p-3 text-left">MP</th>
+                <th class="p-3 text-left">Tindakan</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyJadual"></tbody>
+          </table>
+        </div>
       </div>
-      <!-- ===== TAMAT TAMBAHAN 2 ===== -->
+      <!-- ===== Tamat Senarai Jadual + Filter Guru ===== -->
     </div>
 
     <!-- Penjana AI -->
@@ -320,6 +353,79 @@
 
 <div id="toastContainer" class="fixed bottom-6 right-6 z-[100] space-y-2"></div>
 
+<!-- ===== Modal Edit Jadual ===== -->
+<div id="modalEditJadual" class="fixed inset-0 bg-black/50 z-[90] hidden items-center justify-center p-4 overflow-y-auto">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 my-8">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold">
+        <i class="fa-solid fa-pen-to-square text-blue-600 mr-2"></i>Edit Jadual
+      </h3>
+      <button onclick="tutupModalEditJadual()" class="text-gray-400 hover:text-gray-700">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+    </div>
+    <form id="formEditJadual" onsubmit="simpanEditJadual(event)">
+      <input type="hidden" id="editJadualId">
+      <div class="space-y-3">
+        <div>
+          <label class="block text-sm font-semibold mb-1">Nama Guru</label>
+          <input type="text" id="editJadualNama" class="w-full px-4 py-2.5 rounded-xl border bg-gray-100" readonly>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Hari <span class="text-red-500">*</span></label>
+          <select id="editJadualHari" class="w-full px-4 py-2.5 rounded-xl border" required>
+            <option value="">-- Pilih Hari --</option>
+            <option>Isnin</option><option>Selasa</option><option>Rabu</option><option>Khamis</option><option>Jumaat</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Slot Masa <span class="text-red-500">*</span></label>
+          <select id="editJadualSlot" class="w-full px-4 py-2.5 rounded-xl border" required>
+            <option value="">-- Pilih Slot --</option>
+            <option value="7:20-7:50">7:20-7:50</option>
+            <option value="7:50-8:20">7:50-8:20</option>
+            <option value="8:20-8:50">8:20-8:50</option>
+            <option value="8:50-9:20">8:50-9:20</option>
+            <option value="9:20-9:50">9:20-9:50</option>
+            <option value="10:10-10:40">10:10-10:40</option>
+            <option value="10:40-11:10">10:40-11:10</option>
+            <option value="11:10-11:40">11:10-11:40</option>
+            <option value="11:40-12:10">11:40-12:10</option>
+            <option value="12:10-12:40">12:10-12:40</option>
+            <option value="12:40-1:10">12:40-1:10</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Kelas <span class="text-red-500">*</span></label>
+          <select id="editJadualKelas" class="w-full px-4 py-2.5 rounded-xl border" required>
+            <option value="">-- Pilih Kelas --</option>
+            <option>Tahun 1</option><option>Tahun 2</option><option>Tahun 3</option>
+            <option>Tahun 4</option><option>Tahun 5</option><option>Tahun 6</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Mata Pelajaran <span class="text-red-500">*</span></label>
+          <select id="editJadualMP" class="w-full px-4 py-2.5 rounded-xl border" required>
+            <option value="">-- Pilih --</option>
+            <option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option>
+            <option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option>
+            <option>Seni Visual</option><option>Muzik</option><option>Sejarah</option>
+            <option>RBT</option><option>TMK</option><option>Bahasa Iban</option>
+          </select>
+        </div>
+      </div>
+      <div id="editJadualWarning" class="hidden mt-3 p-3 bg-amber-50 text-amber-800 border border-amber-300 rounded-lg text-xs"></div>
+      <div class="flex gap-2 mt-5">
+        <button type="submit" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold flex-1">
+          <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan
+        </button>
+        <button type="button" onclick="tutupModalEditJadual()" class="border px-5 py-2.5 rounded-xl">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- ===== Tamat Modal Edit Jadual ===== -->
+
 <script>
   // ========== KONFIGURASI SUPABASE ==========
   const SUPABASE_URL = 'https://ywmzcvdlscgeekucnnjp.supabase.co';
@@ -336,7 +442,7 @@
   let penjanaCount = parseInt(localStorage.getItem('penjanaCount') || '0');
   let cachedJadual = [];
 
-  // ========== TAMBAHAN: Tarikh waktu tempatan (Malaysia) - elak masalah timezone UTC ==========
+  // ========== Tarikh waktu tempatan (Malaysia) ==========
   function getLocalDateStr(d = new Date()) {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -344,21 +450,16 @@
     return `${y}-${m}-${dd}`;
   }
 
-  // ✅ PEMBETULAN: Normalisasi tarikh dari Supabase (elak isu timestamptz vs date)
-  // Fungsi ini menerima apa-apa format tarikh dan pulangkan "YYYY-MM-DD" sahaja
+  // Normalisasi tarikh dari Supabase (elak isu timestamptz vs date)
   function normalizeDate(val) {
     if (!val) return '';
-    // Jika sudah "YYYY-MM-DD" sahaja
     if (typeof val === 'string') {
-      // Buang bahagian masa jika ada (T00:00:00+00:00)
       const s = val.trim();
       const match = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
       if (match) return `${match[1]}-${match[2]}-${match[3]}`;
-      // Cuba parse sebagai Date
       const d = new Date(s);
       if (!isNaN(d.getTime())) return getLocalDateStr(d);
     }
-    // Jika Date object
     if (val instanceof Date && !isNaN(val.getTime())) return getLocalDateStr(val);
     return '';
   }
@@ -412,7 +513,7 @@
   }
   function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-  // ========== SMART: Auto isi dropdown guru ganti dengan bilangan waktu (AMBANG BAHARU) ==========
+  // ========== Auto isi dropdown guru ganti dengan bilangan waktu ==========
   async function updateGuruGantiDropdown() {
     const hari = document.getElementById('hariGanti').value;
     const slot = document.getElementById('slotMasa').value;
@@ -441,7 +542,6 @@
       return !adaPdPC && !sudahTugasGanti;
     });
 
-    // ✅ Kira hanya SLOT PdPC SEBENAR (kecuali Perhimpunan & kelas kosong)
     const guruDenganBilangan = tersedia.map(nama => {
       const bilangan = cachedJadual.filter(j =>
         j.nama_guru === nama &&
@@ -456,7 +556,6 @@
     if (!guruDenganBilangan.length) {
       selectGuru.innerHTML = '<option value="">⚠️ Tiada guru tersedia</option>';
     } else {
-      // ✅ Ambang baharu + ikon konsisten
       selectGuru.innerHTML = '<option value="">-- Pilih Guru Ganti --</option>' +
         guruDenganBilangan.map(g => {
           const icon = g.bilangan === 0 ? '🟢'
@@ -565,14 +664,83 @@
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'rekod_ganti.csv'; a.click();
   };
 
-  // Jadual waktu
+  // ========== JADUAL WAKTU: render + filter + edit + delete ==========
   async function renderJadual() {
     if (!supabaseClient) return;
     const { data } = await supabaseClient.from('jadual_waktu').select('*').order('id');
     const tbody = document.getElementById('tbodyJadual');
-    if (!data?.length) { tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Tiada jadual.</td></tr>'; return; }
-    tbody.innerHTML = data.map(j => `<tr><td class="p-3">${esc(j.nama_guru)}</td><td class="p-3">${j.hari}</td><td class="p-3 text-indigo-700">${j.slot_masa}</td><td class="p-3">${esc(j.kelas)}</td><td class="p-3">${j.mata_pelajaran}</td><td class="p-3"><button onclick="padamJadual(${j.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
+    const filterSelect = document.getElementById('jadualFilterGuru');
+    const counter = document.getElementById('jadualCounter');
+
+    // Isi dropdown filter (kekalkan pilihan semasa jika masih ada)
+    if (filterSelect) {
+      const currentFilter = filterSelect.value;
+      const unique = [...new Set((data || []).map(d => d.nama_guru))].sort();
+      filterSelect.innerHTML = '<option value="">👥 Semua Guru</option>' +
+        unique.map(n => `<option>${esc(n)}</option>`).join('');
+      if (currentFilter && unique.includes(currentFilter)) filterSelect.value = currentFilter;
+    }
+
+    if (!data?.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Tiada jadual.</td></tr>';
+      if (counter) counter.textContent = '0 rekod';
+      return;
+    }
+
+    // Tapis ikut guru terpilih
+    const filterValue = filterSelect ? filterSelect.value : '';
+    let filtered = filterValue ? data.filter(j => j.nama_guru === filterValue) : data;
+
+    // Susun ikut hari → slot
+    const hariOrder = ['Isnin','Selasa','Rabu','Khamis','Jumaat'];
+    const slotOrder = ["7:20-7:50","7:50-8:20","8:20-8:50","8:50-9:20","9:20-9:50",
+                       "10:10-10:40","10:40-11:10","11:10-11:40","11:40-12:10",
+                       "12:10-12:40","12:40-1:10"];
+    filtered = [...filtered].sort((a, b) => {
+      if (a.nama_guru !== b.nama_guru) return a.nama_guru.localeCompare(b.nama_guru);
+      const hd = hariOrder.indexOf(a.hari) - hariOrder.indexOf(b.hari);
+      if (hd !== 0) return hd;
+      return slotOrder.indexOf(a.slot_masa) - slotOrder.indexOf(b.slot_masa);
+    });
+
+    if (counter) {
+      counter.textContent = filterValue
+        ? `${filtered.length} rekod — ${filterValue}`
+        : `${filtered.length} rekod (semua guru)`;
+    }
+
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Tiada jadual untuk guru ini.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(j => `
+      <tr class="hover:bg-blue-50/40">
+        <td class="p-3">${esc(j.nama_guru)}</td>
+        <td class="p-3">${esc(j.hari)}</td>
+        <td class="p-3 text-indigo-700 font-medium">${esc(j.slot_masa)}</td>
+        <td class="p-3">${esc(j.kelas)}</td>
+        <td class="p-3">${esc(j.mata_pelajaran)}</td>
+        <td class="p-3">
+          <div class="flex gap-2">
+            <button onclick="bukaEditJadual(${j.id})" class="text-blue-600 hover:text-blue-800" title="Edit slot / maklumat">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button onclick="padamJadual(${j.id})" class="text-red-500 hover:text-red-700" title="Padam rekod">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
   }
+
+  window.resetFilterJadual = () => {
+    const sel = document.getElementById('jadualFilterGuru');
+    if (sel) sel.value = '';
+    renderJadual();
+  };
+
   window.tambahJadual = async (e) => {
     e.preventDefault();
     if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
@@ -588,9 +756,85 @@
     renderJadual();
     showToast('Jadual ditambah!', 'success');
   };
+
   window.padamJadual = async (id) => { if (!supabaseClient) return; await supabaseClient.from('jadual_waktu').delete().eq('id', id); renderJadual(); };
 
-  // ✅ PEMBETULAN: Import CSV - buang tanda petikan (") dari semua medan
+  // ===== EDIT JADUAL (elak bertindih) =====
+  window.bukaEditJadual = async (id) => {
+    if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
+    const { data, error } = await supabaseClient.from('jadual_waktu').select('*').eq('id', id).single();
+    if (error || !data) return showToast('Rekod tidak dijumpai.', 'error');
+
+    document.getElementById('editJadualId').value = data.id;
+    document.getElementById('editJadualNama').value = data.nama_guru || '';
+    document.getElementById('editJadualHari').value = data.hari || '';
+    document.getElementById('editJadualSlot').value = data.slot_masa || '';
+    document.getElementById('editJadualKelas').value = data.kelas || '';
+    document.getElementById('editJadualMP').value = data.mata_pelajaran || '';
+    document.getElementById('editJadualWarning').classList.add('hidden');
+
+    const modal = document.getElementById('modalEditJadual');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  };
+
+  window.tutupModalEditJadual = () => {
+    const modal = document.getElementById('modalEditJadual');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  };
+
+  window.simpanEditJadual = async (e) => {
+    e.preventDefault();
+    if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
+
+    const id     = document.getElementById('editJadualId').value;
+    const nama   = document.getElementById('editJadualNama').value;
+    const hari   = document.getElementById('editJadualHari').value;
+    const slot   = document.getElementById('editJadualSlot').value;
+    const kelas  = document.getElementById('editJadualKelas').value;
+    const mp     = document.getElementById('editJadualMP').value;
+    const warnBox = document.getElementById('editJadualWarning');
+
+    if (!hari || !slot || !kelas || !mp) {
+      showToast('Lengkapkan Hari, Slot, Kelas dan Mata Pelajaran.', 'error');
+      return;
+    }
+
+    // SEMAK KONFLIK: guru sama + hari sama + slot sama (selain rekod ini sendiri)
+    const { data: conflict } = await supabaseClient
+      .from('jadual_waktu')
+      .select('*')
+      .eq('nama_guru', nama)
+      .eq('hari', hari)
+      .eq('slot_masa', slot)
+      .neq('id', id);
+
+    if (conflict?.length) {
+      const c = conflict[0];
+      warnBox.innerHTML = `⚠️ <strong>Konflik dikesan!</strong> ${esc(nama)} sudah mengajar <strong>${esc(c.kelas)} – ${esc(c.mata_pelajaran)}</strong> pada <strong>${esc(hari)} (${esc(slot)})</strong>. Sila pilih slot/hari lain.`;
+      warnBox.classList.remove('hidden');
+      showToast('Konflik jadual! Sila tukar slot atau hari.', 'error');
+      return;
+    }
+
+    const { error } = await supabaseClient
+      .from('jadual_waktu')
+      .update({ hari, slot_masa: slot, kelas, mata_pelajaran: mp })
+      .eq('id', id);
+
+    if (error) {
+      warnBox.innerHTML = '❌ Ralat: ' + esc(error.message);
+      warnBox.classList.remove('hidden');
+      return showToast('Gagal menyimpan: ' + error.message, 'error');
+    }
+
+    tutupModalEditJadual();
+    renderJadual();
+    showToast('✅ Jadual dikemas kini tanpa konflik!', 'success');
+  };
+
+  // ========== Import CSV ==========
   window.importCSV = (event) => {
     if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
     const file = event.target.files[0];
@@ -601,7 +845,6 @@
       const lines = text.split(/\r?\n/).filter(l => l.trim());
       const records = [];
       for (let i = 1; i < lines.length; i++) {
-        // ✅ Buang SEMUA tanda petikan (") dari baris
         const cleanLine = lines[i].replace(/"/g, '');
         const cols = cleanLine.split(',').map(c => c.trim());
         if (cols.length >= 5 && cols[0]) {
@@ -624,7 +867,7 @@
     reader.readAsText(file, 'UTF-8');
   };
 
-  // ===== TAMBAHAN 3: Fungsi eksport Jadual Waktu (CSV / Excel / Excel per guru) =====
+  // ========== EKSPORT JADUAL WAKTU (CSV / Excel / Excel Multi-Sheet) ==========
   async function ambilDataJadualTersusun() {
     if (!supabaseClient) { showToast('Pangkalan data tidak bersambung.', 'error'); return null; }
     const { data, error } = await supabaseClient
@@ -635,7 +878,6 @@
       .order('slot_masa', { ascending: true });
     if (error) { showToast('Ralat ambil data: ' + error.message, 'error'); return null; }
     if (!data?.length) { showToast('Tiada data jadual untuk dieksport.', 'error'); return null; }
-    // Susun ikut urutan hari yang betul (Isnin–Jumaat)
     const hariOrder = ['Isnin','Selasa','Rabu','Khamis','Jumaat'];
     const slotOrder = ["7:20-7:50","7:50-8:20","8:20-8:50","8:50-9:20","9:20-9:50",
                        "10:10-10:40","10:40-11:10","11:10-11:40","11:40-12:10",
@@ -691,7 +933,6 @@
     if (typeof XLSX === 'undefined') return showToast('Pustaka Excel tidak dimuatkan. Sila refresh halaman.', 'error');
     const data = await ambilDataJadualTersusun();
     if (!data) return;
-    // Kumpulkan mengikut guru
     const grouped = {};
     data.forEach(j => {
       const nama = j.nama_guru || 'Tidak Diketahui';
@@ -713,7 +954,6 @@
     wsSummary['!cols'] = [{ wch: 6 }, { wch: 42 }, { wch: 14 }];
     XLSX.utils.book_append_sheet(wb, wsSummary, 'RINGKASAN');
 
-    // Satu sheet untuk setiap guru
     const usedNames = new Set(['RINGKASAN']);
     Object.keys(grouped).sort().forEach(nama => {
       const rows = grouped[nama]
@@ -731,7 +971,6 @@
         }));
       const ws = XLSX.utils.json_to_sheet(rows);
       ws['!cols'] = [{ wch: 6 }, { wch: 10 }, { wch: 15 }, { wch: 12 }, { wch: 22 }];
-      // Nama sheet Excel: max 31 aksara, tiada simbol khas, unik
       let sheetName = nama.replace(/[\\\/\?\*\[\]:]/g, ' ').substring(0, 31).trim() || 'Guru';
       let base = sheetName, counter = 2;
       while (usedNames.has(sheetName.toUpperCase())) {
@@ -745,7 +984,6 @@
     XLSX.writeFile(wb, `jadual_waktu_per_guru_${getLocalDateStr(new Date())}.xlsx`);
     showToast(`✅ ${Object.keys(grouped).length} guru dieksport ke Excel (${wb.SheetNames.length} sheet)!`, 'success');
   };
-  // ===== TAMAT TAMBAHAN 3 =====
 
   // Carian guru ganti
   async function updateCariGuruDropdown() {
@@ -756,7 +994,7 @@
     document.getElementById('cariNamaGuru').innerHTML = '<option value="">-- Pilih Guru Tidak Hadir --</option>' + unique.map(n => `<option>${n}</option>`).join('');
   }
 
-  // ✅ Carian slot kosong dengan warna/ikon konsisten + ambang baharu
+  // Carian slot kosong
   window.cariSlotKosong = async () => {
     if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
     const guru = document.getElementById('cariNamaGuru').value;
@@ -768,7 +1006,6 @@
     const semuaGuru = [...new Set(jadual.map(j => j.nama_guru))].filter(n => n !== guru);
     const today = getLocalDateStr(new Date());
     const { data: rekodSemua } = await supabaseClient.from('rekod_guru_ganti').select('*');
-    // ✅ PEMBETULAN: Normalisasi tarikh sebelum banding
     const rekod = (rekodSemua || []).filter(r => normalizeDate(r.tarikh) === today);
     let html = '';
     slotDiajar.forEach(s => {
@@ -876,8 +1113,6 @@
     const { data: records } = await supabaseClient.from('rekod_guru_ganti').select('*');
     if (!records) return;
     const today = getLocalDateStr(new Date());
-
-    // ✅ PEMBETULAN: Normalisasi tarikh sebelum banding (elak isu timestamptz vs date)
     const recordsNorm = records.map(r => ({ ...r, _tarikh: normalizeDate(r.tarikh) }));
 
     document.getElementById('statCards').innerHTML = `
@@ -891,7 +1126,6 @@
     const monday = new Date(now); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
     const friday = new Date(monday); friday.setDate(monday.getDate() + 4);
     const mondayStr = getLocalDateStr(monday), fridayStr = getLocalDateStr(friday);
-    // ✅ PEMBETULAN: Guna recordsNorm untuk banding tarikh mingguan
     const thisWeek = recordsNorm.filter(r => r._tarikh >= mondayStr && r._tarikh <= fridayStr);
     const totalPossible = 5 * 11;
     const percent = totalPossible ? Math.round((thisWeek.length / totalPossible) * 100) : 0;
@@ -908,7 +1142,6 @@
       <p>📌 Jumlah rekod: ${records.length}</p>
     `;
 
-    // ✅ PEMBETULAN UTAMA: Guna recordsNorm supaya banding tarikh tepat
     const todayRecords = recordsNorm.filter(r => r._tarikh === today);
     const pemaklumanDiv = document.getElementById('pemaklumanGuruGanti');
     if (!pemaklumanDiv) return;
@@ -991,7 +1224,6 @@
       label = `Tahun ${y}`;
     }
     const startStr = dateToStr(start), endStr = dateToStr(end);
-    // ✅ PEMBETULAN: Normalisasi tarikh sebelum banding
     const filtered = records.filter(r => {
       const t = normalizeDate(r.tarikh);
       return t >= startStr && t <= endStr;
@@ -1058,7 +1290,6 @@
     if (!supabaseClient) return;
     const { data: records } = await supabaseClient.from('rekod_guru_ganti').select('tarikh');
     if (!records?.length) return;
-    // ✅ PEMBETULAN: Normalisasi tarikh sebelum buat senarai unik
     const uniqueDates = [...new Set(records.map(r => normalizeDate(r.tarikh)).filter(Boolean))].sort();
     uniqueDates.forEach(d => {
       const opt = document.createElement('option');
@@ -1072,7 +1303,6 @@
   function filterRecordsBySelectedDate(records) {
     const selected = document.getElementById('pdfTarikhPilih')?.value || '';
     if (!selected) return records;
-    // ✅ PEMBETULAN: Normalisasi untuk banding
     return records.filter(r => normalizeDate(r.tarikh) === selected);
   }
 
