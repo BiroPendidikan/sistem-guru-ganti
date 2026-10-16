@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- ===== TAMBAHAN 1: Pustaka SheetJS untuk eksport Excel ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     .sidebar { transition: transform 0.3s ease; }
     .sidebar.open { transform: translateX(0); }
@@ -249,10 +251,30 @@
           <input type="file" id="csvFileInput" accept=".csv" onchange="importCSV(event)" class="hidden">
         </div>
       </form>
+
+      <!-- ===== TAMBAHAN 2: Butang eksport jadual waktu ===== -->
       <div class="bg-white rounded-2xl shadow p-5">
-        <h3 class="font-bold mb-2">Senarai Jadual</h3>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <h3 class="font-bold">Senarai Jadual</h3>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="eksportJadualCSV()" class="border px-4 py-2 rounded-lg text-sm hover:bg-gray-50" title="Muat turun fail CSV">
+              <i class="fa-solid fa-file-csv text-emerald-600"></i> CSV
+            </button>
+            <button onclick="eksportJadualExcel()" class="border px-4 py-2 rounded-lg text-sm hover:bg-gray-50" title="Muat turun fail Excel (.xlsx)">
+              <i class="fa-solid fa-file-excel text-green-700"></i> Excel
+            </button>
+            <button onclick="eksportJadualPerGuruExcel()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700" title="Excel dengan satu sheet untuk setiap guru">
+              <i class="fa-solid fa-users"></i> Excel (1 Sheet / Guru)
+            </button>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400 mb-3">
+          <i class="fa-solid fa-circle-info text-blue-500"></i>
+          Pilih format eksport untuk simpanan / backup data jadual waktu guru.
+        </p>
         <div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3">Nama Guru</th><th class="p-3">Hari</th><th class="p-3">Slot</th><th class="p-3">Kelas</th><th class="p-3">MP</th><th class="p-3"></th></tr></thead><tbody id="tbodyJadual"></tbody></table></div>
       </div>
+      <!-- ===== TAMAT TAMBAHAN 2 ===== -->
     </div>
 
     <!-- Penjana AI -->
@@ -601,6 +623,129 @@
     };
     reader.readAsText(file, 'UTF-8');
   };
+
+  // ===== TAMBAHAN 3: Fungsi eksport Jadual Waktu (CSV / Excel / Excel per guru) =====
+  async function ambilDataJadualTersusun() {
+    if (!supabaseClient) { showToast('Pangkalan data tidak bersambung.', 'error'); return null; }
+    const { data, error } = await supabaseClient
+      .from('jadual_waktu')
+      .select('*')
+      .order('nama_guru', { ascending: true })
+      .order('hari', { ascending: true })
+      .order('slot_masa', { ascending: true });
+    if (error) { showToast('Ralat ambil data: ' + error.message, 'error'); return null; }
+    if (!data?.length) { showToast('Tiada data jadual untuk dieksport.', 'error'); return null; }
+    // Susun ikut urutan hari yang betul (Isnin–Jumaat)
+    const hariOrder = ['Isnin','Selasa','Rabu','Khamis','Jumaat'];
+    const slotOrder = ["7:20-7:50","7:50-8:20","8:20-8:50","8:50-9:20","9:20-9:50",
+                       "10:10-10:40","10:40-11:10","11:10-11:40","11:40-12:10",
+                       "12:10-12:40","12:40-1:10"];
+    return data.sort((a, b) => {
+      if (a.nama_guru !== b.nama_guru) return a.nama_guru.localeCompare(b.nama_guru);
+      const hd = hariOrder.indexOf(a.hari) - hariOrder.indexOf(b.hari);
+      if (hd !== 0) return hd;
+      return slotOrder.indexOf(a.slot_masa) - slotOrder.indexOf(b.slot_masa);
+    });
+  }
+
+  // ---------- EKSPORT CSV ----------
+  window.eksportJadualCSV = async () => {
+    const data = await ambilDataJadualTersusun();
+    if (!data) return;
+    let csv = 'Bil,Nama Guru,Hari,Slot Masa,Kelas,Mata Pelajaran\n';
+    data.forEach((j, i) => {
+      csv += `${i + 1},"${(j.nama_guru || '').replace(/"/g, '""')}","${j.hari || ''}","${j.slot_masa || ''}","${(j.kelas || '').replace(/"/g, '""')}","${(j.mata_pelajaran || '').replace(/"/g, '""')}"\n`;
+    });
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `jadual_waktu_${getLocalDateStr(new Date())}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast(`✅ ${data.length} rekod jadual dieksport ke CSV!`, 'success');
+  };
+
+  // ---------- EKSPORT EXCEL (1 Sheet) ----------
+  window.eksportJadualExcel = async () => {
+    if (typeof XLSX === 'undefined') return showToast('Pustaka Excel tidak dimuatkan. Sila refresh halaman.', 'error');
+    const data = await ambilDataJadualTersusun();
+    if (!data) return;
+    const rows = data.map((j, i) => ({
+      'Bil': i + 1,
+      'Nama Guru': j.nama_guru || '',
+      'Hari': j.hari || '',
+      'Slot Masa': j.slot_masa || '',
+      'Kelas': j.kelas || '',
+      'Mata Pelajaran': j.mata_pelajaran || ''
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = [{ wch: 6 }, { wch: 42 }, { wch: 10 }, { wch: 15 }, { wch: 12 }, { wch: 22 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Jadual Waktu');
+    XLSX.writeFile(wb, `jadual_waktu_${getLocalDateStr(new Date())}.xlsx`);
+    showToast(`✅ ${data.length} rekod jadual dieksport ke Excel!`, 'success');
+  };
+
+  // ---------- EKSPORT EXCEL (1 Sheet per Guru) ----------
+  window.eksportJadualPerGuruExcel = async () => {
+    if (typeof XLSX === 'undefined') return showToast('Pustaka Excel tidak dimuatkan. Sila refresh halaman.', 'error');
+    const data = await ambilDataJadualTersusun();
+    if (!data) return;
+    // Kumpulkan mengikut guru
+    const grouped = {};
+    data.forEach(j => {
+      const nama = j.nama_guru || 'Tidak Diketahui';
+      if (!grouped[nama]) grouped[nama] = [];
+      grouped[nama].push(j);
+    });
+    const wb = XLSX.utils.book_new();
+    const hariOrder = ['Isnin','Selasa','Rabu','Khamis','Jumaat'];
+    const slotOrder = ["7:20-7:50","7:50-8:20","8:20-8:50","8:50-9:20","9:20-9:50",
+                       "10:10-10:40","10:40-11:10","11:10-11:40","11:40-12:10",
+                       "12:10-12:40","12:40-1:10"];
+    // Sheet RINGKASAN
+    const summaryRows = Object.keys(grouped).sort().map((nama, idx) => ({
+      'Bil': idx + 1,
+      'Nama Guru': nama,
+      'Jumlah Waktu': grouped[nama].length
+    }));
+    const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
+    wsSummary['!cols'] = [{ wch: 6 }, { wch: 42 }, { wch: 14 }];
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'RINGKASAN');
+
+    // Satu sheet untuk setiap guru
+    const usedNames = new Set(['RINGKASAN']);
+    Object.keys(grouped).sort().forEach(nama => {
+      const rows = grouped[nama]
+        .sort((a, b) => {
+          const hd = hariOrder.indexOf(a.hari) - hariOrder.indexOf(b.hari);
+          if (hd !== 0) return hd;
+          return slotOrder.indexOf(a.slot_masa) - slotOrder.indexOf(b.slot_masa);
+        })
+        .map((j, i) => ({
+          'Bil': i + 1,
+          'Hari': j.hari || '',
+          'Slot Masa': j.slot_masa || '',
+          'Kelas': j.kelas || '',
+          'Mata Pelajaran': j.mata_pelajaran || ''
+        }));
+      const ws = XLSX.utils.json_to_sheet(rows);
+      ws['!cols'] = [{ wch: 6 }, { wch: 10 }, { wch: 15 }, { wch: 12 }, { wch: 22 }];
+      // Nama sheet Excel: max 31 aksara, tiada simbol khas, unik
+      let sheetName = nama.replace(/[\\\/\?\*\[\]:]/g, ' ').substring(0, 31).trim() || 'Guru';
+      let base = sheetName, counter = 2;
+      while (usedNames.has(sheetName.toUpperCase())) {
+        sheetName = (base.substring(0, 28) + '_' + counter).substring(0, 31);
+        counter++;
+      }
+      usedNames.add(sheetName.toUpperCase());
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    });
+
+    XLSX.writeFile(wb, `jadual_waktu_per_guru_${getLocalDateStr(new Date())}.xlsx`);
+    showToast(`✅ ${Object.keys(grouped).length} guru dieksport ke Excel (${wb.SheetNames.length} sheet)!`, 'success');
+  };
+  // ===== TAMAT TAMBAHAN 3 =====
 
   // Carian guru ganti
   async function updateCariGuruDropdown() {
