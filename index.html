@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- Pustaka SheetJS untuk eksport Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     .sidebar { transition: transform 0.3s ease; }
@@ -64,7 +63,12 @@
         <div id="analisisKekerapan"></div>
       </div>
       <div class="bg-white rounded-2xl shadow p-5">
-        <h3 class="font-bold mb-3"><i class="fa-solid fa-bullhorn text-blue-600 mr-2"></i>Pemakluman Tugasan Guru Ganti Hari Ini</h3>
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <h3 class="font-bold"><i class="fa-solid fa-bullhorn text-blue-600 mr-2"></i>Pemakluman Tugasan Guru Ganti Hari Ini</h3>
+          <button onclick="hantarSemuaWhatsAppHariIni()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold" title="Hantar WA kepada semua guru ganti hari ini (tab demi tab)">
+            <i class="fa-brands fa-whatsapp"></i> Hantar Semua (WA)
+          </button>
+        </div>
         <div id="pemaklumanGuruGanti"></div>
       </div>
     </div>
@@ -169,6 +173,63 @@
         <div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3">#</th><th class="p-3">Guru Tak Hadir</th><th class="p-3">Jenis</th><th class="p-3">Slot</th><th class="p-3">Guru Ganti</th><th class="p-3">Kelas</th><th class="p-3">MP</th><th class="p-3">Tarikh</th><th class="p-3">Tindakan</th></tr></thead><tbody id="tbodyRekod"></tbody></table></div>
       </div>
 
+      <!-- ===== Senarai No. Telefon Guru (WhatsApp) ===== -->
+      <div class="bg-white rounded-2xl shadow p-5">
+        <h3 class="font-bold mb-2">
+          <i class="fa-brands fa-whatsapp text-green-600 mr-2"></i>
+          Senarai No. Telefon Guru (WhatsApp)
+        </h3>
+        <p class="text-xs text-gray-500 mb-3">
+          <i class="fa-solid fa-circle-info text-blue-500"></i>
+          Simpan no. telefon untuk hantar notifikasi WhatsApp kepada guru ganti. Format: <code>0123456789</code> atau <code>60123456789</code>.
+        </p>
+        <form onsubmit="simpanTelefon(event)" class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Guru</label>
+            <select id="telNamaGuru" required class="w-full px-4 py-2.5 rounded-xl border">
+              <option value="">-- Pilih Nama Guru --</option>
+              <option>JULIAN ANAK SIMON PETER</option>
+              <option>EVANA LAMPAS</option>
+              <option>DAYANGKU MARIAWATI BINTI AWANG OMAR</option>
+              <option>NORHIKMAH BINTI ADELA</option>
+              <option>MOHD NOOR AZMAN BIN LAPUMDAGAR</option>
+              <option>DONNA ANAK LANGGAR@JIMUN</option>
+              <option>SHERYL GRACE JAMAU ANAK MANOK</option>
+              <option>NUR HIKMAH BINTI MESON</option>
+              <option>NURUL 'AFAF BINTI MUNIR</option>
+              <option>NUR AMIRAH BINTI AYUB</option>
+              <option>NURUL HANISAH BINTI ROSHIDI</option>
+              <option>ASNAWIE SYAZWAN BIN APONG @ BAKRI</option>
+              <option>MUHAMMAD MUSTAQIM BIN MOHAMMAD MASRIZAL</option>
+              <option>NORAMA ANAK BUNJOK</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">No. Telefon</label>
+            <input type="tel" id="telNoTelefon" required class="w-full px-4 py-2.5 rounded-xl border" placeholder="Cth: 0123456789">
+          </div>
+          <div class="flex items-end">
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-semibold w-full">
+              <i class="fa-solid fa-floppy-disk"></i> Simpan
+            </button>
+          </div>
+        </form>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="p-3 text-left">#</th>
+                <th class="p-3 text-left">Nama Guru</th>
+                <th class="p-3 text-left">No. Telefon</th>
+                <th class="p-3 text-left">Tindakan</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyTelefon"></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- ===== Tamat Senarai No. Telefon ===== -->
+
       <div class="bg-white rounded-2xl shadow p-5">
         <h3 class="font-bold mb-2">
           <i class="fa-solid fa-file-signature text-red-600 mr-2"></i>
@@ -252,7 +313,6 @@
         </div>
       </form>
 
-      <!-- ===== Senarai Jadual + Filter Guru + Eksport ===== -->
       <div class="bg-white rounded-2xl shadow p-5">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
           <h3 class="font-bold">Senarai Jadual</h3>
@@ -269,7 +329,6 @@
           </div>
         </div>
 
-        <!-- Filter Guru -->
         <div class="flex flex-wrap gap-3 items-end mb-4 p-3 bg-blue-50 border border-blue-100 rounded-xl">
           <div class="flex-1 min-w-[220px]">
             <label class="block text-xs font-semibold text-blue-800 mb-1">
@@ -307,7 +366,6 @@
           </table>
         </div>
       </div>
-      <!-- ===== Tamat Senarai Jadual + Filter Guru ===== -->
     </div>
 
     <!-- Penjana AI -->
@@ -353,7 +411,7 @@
 
 <div id="toastContainer" class="fixed bottom-6 right-6 z-[100] space-y-2"></div>
 
-<!-- ===== Modal Edit Jadual ===== -->
+<!-- Modal Edit Jadual -->
 <div id="modalEditJadual" class="fixed inset-0 bg-black/50 z-[90] hidden items-center justify-center p-4 overflow-y-auto">
   <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 my-8">
     <div class="flex items-center justify-between mb-4">
@@ -424,7 +482,6 @@
     </form>
   </div>
 </div>
-<!-- ===== Tamat Modal Edit Jadual ===== -->
 
 <script>
   // ========== KONFIGURASI SUPABASE ==========
@@ -441,6 +498,7 @@
 
   let penjanaCount = parseInt(localStorage.getItem('penjanaCount') || '0');
   let cachedJadual = [];
+  let cachedTelefon = {}; // { nama_guru: no_telefon }
 
   // ========== Tarikh waktu tempatan (Malaysia) ==========
   function getLocalDateStr(d = new Date()) {
@@ -450,7 +508,6 @@
     return `${y}-${m}-${dd}`;
   }
 
-  // Normalisasi tarikh dari Supabase (elak isu timestamptz vs date)
   function normalizeDate(val) {
     if (!val) return '';
     if (typeof val === 'string') {
@@ -463,6 +520,192 @@
     if (val instanceof Date && !isNaN(val.getTime())) return getLocalDateStr(val);
     return '';
   }
+
+  // ========== WhatsApp Helper ==========
+  function normalizePhone(p) {
+    if (!p) return '';
+    let s = String(p).replace(/[\s\-\(\)\.\+]/g, '');
+    if (!s) return '';
+    if (s.startsWith('0')) s = '60' + s.substring(1);
+    else if (!s.startsWith('60')) s = '60' + s;
+    return s;
+  }
+
+  function buildWhatsAppMessage(rec) {
+    const tarikhFmt = formatDateMY(rec.tarikh);
+    const catatan = rec.catatan ? `\n📝 Catatan: ${rec.catatan}` : '';
+    return `Assalamualaikum & Salam Sejahtera,
+
+*NOTIFIKASI GURU GANTI*
+SK RC KUBONG @ 2026
+
+Anda telah ditugaskan sebagai *GURU GANTI*:
+
+📅 Tarikh: ${tarikhFmt}
+⏰ Slot: ${rec.slot_masa}
+👨‍🏫 Guru Tidak Hadir: ${rec.guru_tak_hadir}
+📚 Kelas: ${rec.kelas}
+📖 Mata Pelajaran: ${rec.mata_pelajaran}
+📌 Jenis Tugasan: ${rec.jenis_tugasan || 'Tidak Dinyatakan'}${catatan}
+
+Sila hadir ke kelas pada masa yang ditetapkan. Terima kasih.
+
+_- Sistem eMMI_`;
+  }
+
+  async function bukaWhatsAppDenganRekod(rec) {
+    const nama = rec.guru_ganti || '';
+    const noTel = cachedTelefon[nama];
+    if (!noTel) {
+      showToast(`⚠️ No. telefon ${nama} belum disimpan. Sila simpan di menu Pengurusan.`, 'error');
+      return;
+    }
+    const phone = normalizePhone(noTel);
+    const msg = buildWhatsAppMessage(rec);
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
+    showToast(`📲 Membuka WhatsApp untuk ${nama}...`, 'success');
+  }
+
+  window.bukaWhatsAppRekod = async (id) => {
+    if (!supabaseClient) return;
+    const { data } = await supabaseClient.from('rekod_guru_ganti').select('*').eq('id', id).single();
+    if (!data) return showToast('Rekod tidak dijumpai.', 'error');
+    await bukaWhatsAppDenganRekod(data);
+  };
+
+  window.hantarSemuaWhatsAppHariIni = async () => {
+    if (!supabaseClient) return;
+    const today = getLocalDateStr(new Date());
+    const { data } = await supabaseClient.from('rekod_guru_ganti').select('*');
+    const todayRecs = (data || []).filter(r => normalizeDate(r.tarikh) === today);
+    if (!todayRecs.length) return showToast('Tiada tugasan untuk hari ini.', 'error');
+
+    // Kumpulkan ikut guru ganti (1 guru boleh ada banyak slot)
+    const byGuru = {};
+    todayRecs.forEach(r => {
+      if (!byGuru[r.guru_ganti]) byGuru[r.guru_ganti] = [];
+      byGuru[r.guru_ganti].push(r);
+    });
+
+    const total = Object.keys(byGuru).length;
+    const tanpaTel = Object.keys(byGuru).filter(n => !cachedTelefon[n]);
+    if (!confirm(`Hantar WhatsApp kepada ${total} guru ganti hari ini?\n\n${tanpaTel.length ? `⚠️ ${tanpaTel.length} guru tiada no. telefon dan akan dilangkau:\n• ${tanpaTel.join('\n• ')}\n\n` : ''}Nota: Popup blocker mungkin perlu dibenarkan.`)) return;
+
+    let count = 0;
+    for (const nama of Object.keys(byGuru)) {
+      if (!cachedTelefon[nama]) continue;
+      const phone = normalizePhone(cachedTelefon[nama]);
+      // Gabungkan semua slot guru dalam satu mesej
+      const senaraiSlot = byGuru[nama].map(r =>
+        `  • ${r.slot_masa} — ${r.kelas} (${r.mata_pelajaran}) — Ganti: ${r.guru_tak_hadir}`
+      ).join('\n');
+      const msg = `Assalamualaikum & Salam Sejahtera,
+
+*NOTIFIKASI GURU GANTI*
+SK RC KUBONG @ 2026
+
+Anda ditugaskan sebagai *GURU GANTI* pada *${formatDateMY(today)}*:
+
+${senaraiSlot}
+
+Sila hadir ke kelas pada masa yang ditetapkan. Terima kasih.
+
+_- Sistem eMMI_`;
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+      count++;
+      await new Promise(res => setTimeout(res, 600)); // elak spam
+    }
+    showToast(`📲 ${count} tetingkap WhatsApp dibuka.`, 'success');
+  };
+
+  window.salinMesejWhatsApp = async (id) => {
+    if (!supabaseClient) return;
+    const { data } = await supabaseClient.from('rekod_guru_ganti').select('*').eq('id', id).single();
+    if (!data) return;
+    const msg = buildWhatsAppMessage(data);
+    try {
+      await navigator.clipboard.writeText(msg);
+      showToast('📋 Mesej disalin! Boleh paste dalam WhatsApp.', 'success');
+    } catch (e) {
+      showToast('Gagal salin: ' + e.message, 'error');
+    }
+  };
+
+  // ========== SENARAI NO. TELEFON GURU ==========
+  async function muatTelefonGuru() {
+    if (!supabaseClient) return;
+    const { data, error } = await supabaseClient.from('telefon_guru').select('*').order('nama_guru');
+    if (error) {
+      console.warn('Jadual telefon_guru belum wujud? ', error.message);
+      cachedTelefon = {};
+    } else {
+      cachedTelefon = {};
+      (data || []).forEach(t => { cachedTelefon[t.nama_guru] = t.no_telefon; });
+    }
+    renderTelefonTable();
+  }
+
+  function renderTelefonTable() {
+    const tbody = document.getElementById('tbodyTelefon');
+    if (!tbody) return;
+    const entries = Object.entries(cachedTelefon).sort((a, b) => a[0].localeCompare(b[0]));
+    if (!entries.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-gray-400">Tiada no. telefon disimpan lagi.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = entries.map(([nama, tel], i) => `
+      <tr>
+        <td class="p-3">${i + 1}</td>
+        <td class="p-3 font-medium">${esc(nama)}</td>
+        <td class="p-3 text-green-700 font-semibold">${esc(tel)}</td>
+        <td class="p-3">
+          <div class="flex gap-2">
+            <button onclick="editTelefon('${esc(nama).replace(/'/g, "\\'")}','${esc(tel).replace(/'/g, "\\'")}')" class="text-blue-600 hover:text-blue-800" title="Edit">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button onclick="padamTelefon('${esc(nama).replace(/'/g, "\\'")}')" class="text-red-500 hover:text-red-700" title="Padam">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  window.simpanTelefon = async (e) => {
+    e.preventDefault();
+    if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
+    const nama = document.getElementById('telNamaGuru').value;
+    const noTel = document.getElementById('telNoTelefon').value.trim();
+    if (!nama || !noTel) return showToast('Lengkapkan nama & no. telefon.', 'error');
+
+    const { error } = await supabaseClient
+      .from('telefon_guru')
+      .upsert({ nama_guru: nama, no_telefon: noTel }, { onConflict: 'nama_guru' });
+
+    if (error) return showToast('Ralat simpan: ' + error.message, 'error');
+    document.getElementById('telNoTelefon').value = '';
+    await muatTelefonGuru();
+    showToast(`✅ No. telefon ${nama} disimpan.`, 'success');
+  };
+
+  window.editTelefon = (nama, tel) => {
+    document.getElementById('telNamaGuru').value = nama;
+    document.getElementById('telNoTelefon').value = tel;
+    document.getElementById('telNoTelefon').focus();
+    showToast('Ubah no. telefon, kemudian klik Simpan.', 'info');
+  };
+
+  window.padamTelefon = async (nama) => {
+    if (!confirm(`Padam no. telefon ${nama}?`)) return;
+    if (!supabaseClient) return;
+    const { error } = await supabaseClient.from('telefon_guru').delete().eq('nama_guru', nama);
+    if (error) return showToast('Ralat: ' + error.message, 'error');
+    await muatTelefonGuru();
+    showToast('No. telefon dipadam.', 'success');
+  };
 
   // ========== Selaras Hari dengan Tarikh ==========
   window.syncHariFromTarikh = () => {
@@ -489,7 +732,7 @@
     document.getElementById(`page-${page}`).classList.add('active');
     if (window.innerWidth < 1024) closeSidebar();
     if (page === 'dashboard') { updateDashboard(); renderAnalisisKekerapan(); }
-    else if (page === 'pengurusan') { updateCariGuruDropdown(); renderTable(); refreshPdfTarikhOptions(); }
+    else if (page === 'pengurusan') { updateCariGuruDropdown(); renderTable(); refreshPdfTarikhOptions(); muatTelefonGuru(); }
     else if (page === 'jadual') renderJadual();
   };
   window.toggleSidebar = () => {
@@ -511,9 +754,9 @@
     document.getElementById('toastContainer').appendChild(t);
     setTimeout(() => t.remove(), 3500);
   }
-  function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
 
-  // ========== Auto isi dropdown guru ganti dengan bilangan waktu ==========
+  // ========== Auto isi dropdown guru ganti ==========
   async function updateGuruGantiDropdown() {
     const hari = document.getElementById('hariGanti').value;
     const slot = document.getElementById('slotMasa').value;
@@ -589,7 +832,11 @@
     if (error) { console.error(error); return; }
     const tbody = document.getElementById('tbodyRekod');
     if (!data?.length) { tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-gray-400">Tiada rekod.</td></tr>'; return; }
-    tbody.innerHTML = data.map((r, i) => `
+    tbody.innerHTML = data.map((r, i) => {
+      const adaTel = !!cachedTelefon[r.guru_ganti];
+      const waClass = adaTel ? 'text-green-600 hover:text-green-800' : 'text-gray-300 cursor-not-allowed';
+      const waTitle = adaTel ? `Hantar WhatsApp ke ${r.guru_ganti}` : `No. telefon ${r.guru_ganti} belum disimpan`;
+      return `
       <tr>
         <td class="p-3">${i+1}</td>
         <td class="p-3 text-red-600">${esc(r.guru_tak_hadir)}</td>
@@ -599,9 +846,22 @@
         <td class="p-3"><span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs">${esc(r.kelas)}</span></td>
         <td class="p-3">${esc(r.mata_pelajaran)}</td>
         <td class="p-3 text-xs">${normalizeDate(r.tarikh)}</td>
-        <td class="p-3 flex gap-1"><button onclick="padamRekod(${r.id})" class="text-red-500"><i class="fa-solid fa-trash-can"></i></button><button onclick="janaBahanDariRekod('${r.kelas}','${r.mata_pelajaran}','${r.slot_masa}')" class="text-purple-600" title="Jana Bahan"><i class="fa-solid fa-wand-magic-sparkles"></i></button></td>
-      </tr>
-    `).join('');
+        <td class="p-3 flex gap-2 items-center">
+          <button onclick="bukaWhatsAppRekod(${r.id})" class="${waClass}" title="${waTitle}">
+            <i class="fa-brands fa-whatsapp text-lg"></i>
+          </button>
+          <button onclick="salinMesejWhatsApp(${r.id})" class="text-blue-600 hover:text-blue-800" title="Salin mesej WhatsApp">
+            <i class="fa-solid fa-copy"></i>
+          </button>
+          <button onclick="padamRekod(${r.id})" class="text-red-500" title="Padam rekod">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+          <button onclick="janaBahanDariRekod('${r.kelas}','${r.mata_pelajaran}','${r.slot_masa}')" class="text-purple-600" title="Jana Bahan">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
   }
 
   window.tambahRekod = async (e) => {
@@ -664,7 +924,7 @@
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'rekod_ganti.csv'; a.click();
   };
 
-  // ========== JADUAL WAKTU: render + filter + edit + delete ==========
+  // ========== JADUAL WAKTU ==========
   async function renderJadual() {
     if (!supabaseClient) return;
     const { data } = await supabaseClient.from('jadual_waktu').select('*').order('id');
@@ -672,7 +932,6 @@
     const filterSelect = document.getElementById('jadualFilterGuru');
     const counter = document.getElementById('jadualCounter');
 
-    // Isi dropdown filter (kekalkan pilihan semasa jika masih ada)
     if (filterSelect) {
       const currentFilter = filterSelect.value;
       const unique = [...new Set((data || []).map(d => d.nama_guru))].sort();
@@ -687,11 +946,9 @@
       return;
     }
 
-    // Tapis ikut guru terpilih
     const filterValue = filterSelect ? filterSelect.value : '';
     let filtered = filterValue ? data.filter(j => j.nama_guru === filterValue) : data;
 
-    // Susun ikut hari → slot
     const hariOrder = ['Isnin','Selasa','Rabu','Khamis','Jumaat'];
     const slotOrder = ["7:20-7:50","7:50-8:20","8:20-8:50","8:50-9:20","9:20-9:50",
                        "10:10-10:40","10:40-11:10","11:10-11:40","11:40-12:10",
@@ -759,7 +1016,6 @@
 
   window.padamJadual = async (id) => { if (!supabaseClient) return; await supabaseClient.from('jadual_waktu').delete().eq('id', id); renderJadual(); };
 
-  // ===== EDIT JADUAL (elak bertindih) =====
   window.bukaEditJadual = async (id) => {
     if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
     const { data, error } = await supabaseClient.from('jadual_waktu').select('*').eq('id', id).single();
@@ -801,7 +1057,6 @@
       return;
     }
 
-    // SEMAK KONFLIK: guru sama + hari sama + slot sama (selain rekod ini sendiri)
     const { data: conflict } = await supabaseClient
       .from('jadual_waktu')
       .select('*')
@@ -867,7 +1122,7 @@
     reader.readAsText(file, 'UTF-8');
   };
 
-  // ========== EKSPORT JADUAL WAKTU (CSV / Excel / Excel Multi-Sheet) ==========
+  // ========== EKSPORT JADUAL WAKTU ==========
   async function ambilDataJadualTersusun() {
     if (!supabaseClient) { showToast('Pangkalan data tidak bersambung.', 'error'); return null; }
     const { data, error } = await supabaseClient
@@ -890,7 +1145,6 @@
     });
   }
 
-  // ---------- EKSPORT CSV ----------
   window.eksportJadualCSV = async () => {
     const data = await ambilDataJadualTersusun();
     if (!data) return;
@@ -907,7 +1161,6 @@
     showToast(`✅ ${data.length} rekod jadual dieksport ke CSV!`, 'success');
   };
 
-  // ---------- EKSPORT EXCEL (1 Sheet) ----------
   window.eksportJadualExcel = async () => {
     if (typeof XLSX === 'undefined') return showToast('Pustaka Excel tidak dimuatkan. Sila refresh halaman.', 'error');
     const data = await ambilDataJadualTersusun();
@@ -928,7 +1181,6 @@
     showToast(`✅ ${data.length} rekod jadual dieksport ke Excel!`, 'success');
   };
 
-  // ---------- EKSPORT EXCEL (1 Sheet per Guru) ----------
   window.eksportJadualPerGuruExcel = async () => {
     if (typeof XLSX === 'undefined') return showToast('Pustaka Excel tidak dimuatkan. Sila refresh halaman.', 'error');
     const data = await ambilDataJadualTersusun();
@@ -944,7 +1196,6 @@
     const slotOrder = ["7:20-7:50","7:50-8:20","8:20-8:50","8:50-9:20","9:20-9:50",
                        "10:10-10:40","10:40-11:10","11:10-11:40","11:40-12:10",
                        "12:10-12:40","12:40-1:10"];
-    // Sheet RINGKASAN
     const summaryRows = Object.keys(grouped).sort().map((nama, idx) => ({
       'Bil': idx + 1,
       'Nama Guru': nama,
@@ -985,7 +1236,6 @@
     showToast(`✅ ${Object.keys(grouped).length} guru dieksport ke Excel (${wb.SheetNames.length} sheet)!`, 'success');
   };
 
-  // Carian guru ganti
   async function updateCariGuruDropdown() {
     if (!supabaseClient) return;
     const { data } = await supabaseClient.from('jadual_waktu').select('nama_guru');
@@ -994,7 +1244,6 @@
     document.getElementById('cariNamaGuru').innerHTML = '<option value="">-- Pilih Guru Tidak Hadir --</option>' + unique.map(n => `<option>${n}</option>`).join('');
   }
 
-  // Carian slot kosong
   window.cariSlotKosong = async () => {
     if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
     const guru = document.getElementById('cariNamaGuru').value;
@@ -1154,6 +1403,7 @@
       todayRecords.forEach(rec => {
         const jenis = rec.jenis_tugasan || 'Tidak Dinyatakan';
         const catatan = rec.catatan ? ` — ${esc(rec.catatan)}` : '';
+        const adaTel = !!cachedTelefon[rec.guru_ganti];
         const badgeWarna = jenis === 'Cuti Sakit' ? 'bg-red-50 text-red-700 border-red-200'
                           : jenis === 'Kursus' ? 'bg-purple-50 text-purple-700 border-purple-200'
                           : jenis === 'Bengkel' ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
@@ -1182,6 +1432,14 @@
               <span><i class="fa-solid fa-chalkboard mr-1"></i>${esc(rec.kelas)}</span>
               <span class="text-gray-400">|</span>
               <span><i class="fa-solid fa-book mr-1"></i>${esc(rec.mata_pelajaran)}</span>
+              <span class="ml-auto flex gap-2">
+                <button onclick="bukaWhatsAppRekod(${rec.id})" class="${adaTel ? 'text-green-600 hover:text-green-800' : 'text-gray-300 cursor-not-allowed'} text-base" title="${adaTel ? 'Hantar WhatsApp' : 'No. telefon belum disimpan'}">
+                  <i class="fa-brands fa-whatsapp"></i>
+                </button>
+                <button onclick="salinMesejWhatsApp(${rec.id})" class="text-blue-600 hover:text-blue-800 text-base" title="Salin mesej WhatsApp">
+                  <i class="fa-solid fa-copy"></i>
+                </button>
+              </span>
             </div>
           </div>`;
       });
@@ -1515,6 +1773,7 @@
   // Mula
   window.addEventListener('DOMContentLoaded', async () => {
     if (!supabaseClient) { showToast('Gagal menyambung ke pangkalan data.', 'error'); return; }
+    await muatTelefonGuru();
     await renderTable();
     await renderJadual();
     await updateDashboard();
