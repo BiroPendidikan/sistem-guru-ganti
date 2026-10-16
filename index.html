@@ -32,6 +32,8 @@
     <a onclick="navigateTo('pengurusan')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-user-pen"></i> Pengurusan</a>
     <a onclick="navigateTo('jadual')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-calendar-days"></i> Jadual Waktu</a>
     <a onclick="navigateTo('penjana')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-robot"></i> Penjana AI</a>
+
+        <a onclick="navigateTo('rph')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-file-pen"></i> Jana RPH</a>
   </nav>
   <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 text-center text-xs text-blue-300">
     <i class="fa-regular fa-copyright"></i> 2026 SK RC KUBONG<br>
@@ -449,6 +451,122 @@
   </div>
 
   <div class="text-center text-xs text-gray-400 py-3 border-t border-gray-200 mt-6">
+
+        <!-- ===== Jana RPH ===== -->
+    <div id="page-rph" class="page space-y-6">
+      <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-file-pen text-purple-600 mr-2"></i>Jana RPH Guru Ganti</h2>
+      <p class="text-gray-500 text-sm">AI cadang tajuk mengikut DSKP → anda pilih → AI jana RPH lengkap. Ringkas & pantas.</p>
+
+      <div class="flex gap-2 border-b border-gray-200">
+        <button id="rphTabJana" onclick="tukarTabRPH('jana')" class="px-5 py-2.5 font-semibold text-purple-700 border-b-2 border-purple-600">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Jana RPH
+        </button>
+        <button id="rphTabSejarah" onclick="tukarTabRPH('sejarah')" class="px-5 py-2.5 font-semibold text-gray-500 hover:text-gray-700 border-b-2 border-transparent">
+          <i class="fa-solid fa-clock-rotate-left"></i> Sejarah RPH
+        </button>
+      </div>
+
+      <!-- ==== TAB JANA RPH ==== -->
+      <div id="rphPaneJana" class="space-y-4">
+        <!-- Konteks tugasan -->
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+          <h3 class="font-bold text-blue-800 text-sm mb-2">
+            <i class="fa-solid fa-clipboard-list mr-1"></i> Konteks Tugasan
+          </h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Tarikh</label>
+              <input type="date" id="rphTarikh" class="w-full px-3 py-2 rounded-lg border bg-white text-sm">
+            </div>
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Slot</label>
+              <input type="text" id="rphSlot" class="w-full px-3 py-2 rounded-lg border bg-white text-sm" placeholder="7:20-7:50">
+            </div>
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Nama Guru Ganti</label>
+              <input type="text" id="rphNamaGuruGanti" class="w-full px-3 py-2 rounded-lg border bg-white text-sm" placeholder="Nama anda">
+            </div>
+            <div>
+              <label class="block font-semibold text-gray-600 mb-1">Rujuk Rekod Ganti</label>
+              <select id="rphRujukRekod" onchange="autofillDariRekod()" class="w-full px-3 py-2 rounded-lg border bg-white text-sm">
+                <option value="">-- Pilih --</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Parameter AI -->
+        <div class="bg-white rounded-2xl shadow p-5">
+          <h3 class="font-bold mb-3"><i class="fa-solid fa-sliders text-purple-600 mr-2"></i>Parameter</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-sm font-semibold mb-1">Tahun</label>
+              <select id="rphTahun" class="w-full px-4 py-2.5 rounded-xl border" required>
+                <option value="">-- Pilih Tahun --</option>
+                <option>Tahun 1</option><option>Tahun 2</option><option>Tahun 3</option>
+                <option>Tahun 4</option><option>Tahun 5</option><option>Tahun 6</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1">Mata Pelajaran</label>
+              <select id="rphMP" class="w-full px-4 py-2.5 rounded-xl border" required>
+                <option value="">-- Pilih --</option>
+                <option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option>
+                <option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option>
+                <option>Seni Visual</option><option>Muzik</option><option>Sejarah</option>
+                <option>RBT</option><option>TMK</option><option>Bahasa Iban</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1">Masa (minit)</label>
+              <input type="number" id="rphMasa" value="30" min="15" max="90" class="w-full px-4 py-2.5 rounded-xl border">
+            </div>
+          </div>
+          <button onclick="cadangTajukAI()" class="mt-4 bg-purple-600 text-white px-6 py-2.5 rounded-xl font-semibold w-full md:w-auto">
+            <i class="fa-solid fa-lightbulb"></i> Cadang Tajuk Dengan AI
+          </button>
+        </div>
+
+        <!-- Senarai tajuk -->
+        <div id="rphCadanganBox" class="bg-white rounded-2xl shadow p-5 hidden">
+          <h3 class="font-bold mb-3"><i class="fa-solid fa-list-check text-amber-500 mr-2"></i>Pilih Tajuk</h3>
+          <div id="rphCadanganList" class="space-y-2 mb-4"></div>
+          <button onclick="janaRPHLengkap()" class="bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold w-full">
+            <i class="fa-solid fa-robot"></i> Jana RPH Untuk Tajuk Terpilih
+          </button>
+        </div>
+
+        <!-- Hasil RPH -->
+        <div id="rphHasilBox" class="bg-white rounded-2xl shadow p-5 hidden">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h3 class="font-bold"><i class="fa-solid fa-file-lines text-purple-600 mr-2"></i>Hasil RPH</h3>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="editRPH()" class="border px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-pen"></i> Edit</button>
+              <button onclick="salinRPH()" class="border px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-copy"></i> Salin</button>
+              <button onclick="muatTurunRPHTXT()" class="border px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-download"></i> TXT</button>
+              <button onclick="janaRPHPDF()" class="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+              <button onclick="simpanRPH()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+            </div>
+          </div>
+          <div id="rphHasilContent" class="bg-gray-50 rounded-xl p-4 text-sm border whitespace-pre-wrap font-mono leading-relaxed"></div>
+        </div>
+      </div>
+
+      <!-- ==== TAB SEJARAH ==== -->
+      <div id="rphPaneSejarah" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl shadow p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <h3 class="font-bold"><i class="fa-solid fa-clock-rotate-left text-blue-600 mr-2"></i>Sejarah RPH</h3>
+            <div class="flex gap-2">
+              <input type="text" id="rphCariSejarah" oninput="renderSejarahRPH()" placeholder="🔍 Cari tajuk / subjek / nama..." class="px-3 py-2 rounded-lg border text-sm w-64">
+              <button onclick="renderSejarahRPH()" class="border px-3 py-2 rounded-lg text-sm"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+          </div>
+          <div id="rphSejarahList" class="space-y-3"></div>
+        </div>
+      </div>
+    </div>
+    <!-- ===== Tamat Jana RPH ===== -->
     <i class="fa-solid fa-shield-halved mr-1"></i> Pihak sekolah tidak bertanggungjawab jika berlaku sebarang kehilangan dan kerosakan kerana penggunaan laman ini.
   </div>
 </main>
@@ -929,7 +1047,8 @@ _- Sistem eMMI_`;
     if (window.innerWidth < 1024) closeSidebar();
     if (page === 'dashboard') { updateDashboard(); renderAnalisisKekerapan(); renderGuruTidakHadirHariIni(); }
     else if (page === 'pengurusan') { updateCariGuruDropdown(); renderTable(); refreshPdfTarikhOptions(); muatTelefonGuru(); }
-    else if (page === 'jadual') renderJadual();
+        else if (page === 'jadual') renderJadual();
+    else if (page === 'rph') { muatRekodUntukRPH(); renderSejarahRPH(); }
   };
   window.toggleSidebar = () => {
     document.getElementById('sidebar').classList.toggle('open');
@@ -2138,6 +2257,359 @@ _- Sistem eMMI_`;
       showToast('Gagal menjana PDF: ' + e.message, 'error');
     }
   };
+
+    // ============================================================
+  // JANA RPH GURU GANTI
+  // ============================================================
+  let rphCadangan = [];
+  let rphTajukTerpilih = null;
+  let rphHasilSemasa = null;
+  let rphEditMode = false;
+  let rphRekodCache = [];
+
+  window.tukarTabRPH = (tab) => {
+    const isJana = tab === 'jana';
+    document.getElementById('rphPaneJana').classList.toggle('hidden', !isJana);
+    document.getElementById('rphPaneSejarah').classList.toggle('hidden', isJana);
+    const bJana = document.getElementById('rphTabJana');
+    const bSej = document.getElementById('rphTabSejarah');
+    if (isJana) {
+      bJana.className = 'px-5 py-2.5 font-semibold text-purple-700 border-b-2 border-purple-600';
+      bSej.className = 'px-5 py-2.5 font-semibold text-gray-500 hover:text-gray-700 border-b-2 border-transparent';
+    } else {
+      bSej.className = 'px-5 py-2.5 font-semibold text-purple-700 border-b-2 border-purple-600';
+      bJana.className = 'px-5 py-2.5 font-semibold text-gray-500 hover:text-gray-700 border-b-2 border-transparent';
+      renderSejarahRPH();
+    }
+  };
+
+  async function muatRekodUntukRPH() {
+    if (!supabaseClient) return;
+    const { data } = await supabaseClient.from('rekod_guru_ganti').select('*').order('tarikh', { ascending: false }).limit(50);
+    rphRekodCache = data || [];
+    const sel = document.getElementById('rphRujukRekod');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">-- Pilih Rekod Ganti (auto-isi) --</option>' +
+      rphRekodCache.map(r => {
+        const tgl = normalizeDate(r.tarikh);
+        return `<option value="${r.id}">${tgl} · ${r.slot_masa} · ${r.kelas} · ${r.mata_pelajaran} (${r.guru_ganti})</option>`;
+      }).join('');
+  }
+
+  window.autofillDariRekod = () => {
+    const id = document.getElementById('rphRujukRekod').value;
+    if (!id) return;
+    const r = rphRekodCache.find(x => String(x.id) === String(id));
+    if (!r) return;
+    document.getElementById('rphTarikh').value = normalizeDate(r.tarikh);
+    document.getElementById('rphSlot').value = r.slot_masa || '';
+    document.getElementById('rphNamaGuruGanti').value = r.guru_ganti || '';
+    if (r.kelas) document.getElementById('rphTahun').value = r.kelas;
+    if (r.mata_pelajaran) document.getElementById('rphMP').value = r.mata_pelajaran;
+    showToast('✅ Konteks diisi dari rekod ganti.', 'success');
+  };
+
+  window.cadangTajukAI = async () => {
+    const tahun = document.getElementById('rphTahun').value;
+    const mp = document.getElementById('rphMP').value;
+    if (!tahun || !mp) return showToast('Pilih Tahun dan Mata Pelajaran dahulu.', 'error');
+
+    const box = document.getElementById('rphCadanganBox');
+    const list = document.getElementById('rphCadanganList');
+    box.classList.remove('hidden');
+    document.getElementById('rphHasilBox').classList.add('hidden');
+    list.innerHTML = '<div class="text-center py-6"><div class="animate-spin inline-block w-6 h-6 border-4 border-purple-200 border-t-purple-600 rounded-full"></div><p class="mt-2 text-gray-500 text-sm">AI sedang mencadang tajuk...</p></div>';
+
+    try {
+      const res = await fetch('https://penjana-kssr-proxy.juliansimonpeter.workers.dev/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'cadang-tajuk', tahun, mp })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      // Cubaan parse JSON dari output AI
+      let tajukArr = null;
+      if (Array.isArray(data.tajuk)) tajukArr = data.tajuk;
+      else {
+        try {
+          const m = String(data.hasil || '').match(/\{[\s\S]*\}/);
+          if (m) {
+            const parsed = JSON.parse(m[0]);
+            if (Array.isArray(parsed.tajuk)) tajukArr = parsed.tajuk;
+          }
+        } catch (_) {}
+      }
+      // Fallback: parse baris demi baris
+      if (!tajukArr) {
+        const lines = String(data.hasil || '').split('\n').filter(l => l.trim());
+        tajukArr = lines.filter(l => /^\s*\d+\./.test(l)).map(l => {
+          const parts = l.replace(/^\s*\d+\.\s*/, '').split('—').map(s => s.trim());
+          return { nama: parts[0] || l, kemahiran: parts[1] || '', kod_sk: '' };
+        });
+      }
+      if (!tajukArr || !tajukArr.length) throw new Error('AI tidak pulangkan senarai tajuk. Cuba semula.');
+
+      rphCadangan = tajukArr.slice(0, 6);
+      list.innerHTML = rphCadangan.map((t, i) => `
+        <label class="flex items-start gap-3 p-3 border rounded-xl hover:bg-purple-50 cursor-pointer transition">
+          <input type="radio" name="rphTajukPilih" value="${i}" onchange="pilihTajukRPH(${i})" class="mt-1">
+          <div class="flex-1">
+            <div class="font-semibold text-gray-800">${esc(t.nama || '-')}</div>
+            ${t.kemahiran ? `<div class="text-xs text-purple-700 mt-0.5"><i class="fa-solid fa-bookmark"></i> ${esc(t.kemahiran)}</div>` : ''}
+            ${t.kod_sk ? `<div class="text-xs text-gray-500 mt-0.5">Kod SK: ${esc(t.kod_sk)}</div>` : ''}
+          </div>
+        </label>
+      `).join('') + `
+        <label class="flex items-start gap-3 p-3 border rounded-xl hover:bg-purple-50 cursor-pointer transition bg-amber-50/50">
+          <input type="radio" name="rphTajukPilih" value="custom" onchange="pilihTajukRPH('custom')" class="mt-1">
+          <div class="flex-1">
+            <div class="font-semibold text-gray-800">⚪ Tajuk Sendiri</div>
+            <input type="text" id="rphTajukCustom" placeholder="Taip tajuk anda..." class="mt-2 w-full px-3 py-2 rounded-lg border text-sm" oninput="rphTajukTerpilih = { nama: this.value.trim(), kemahiran: 'Pilihan guru', kod_sk: '' }">
+          </div>
+        </label>
+      `;
+      showToast('✅ AI cadang 6 tajuk. Sila pilih satu.', 'success');
+    } catch (err) {
+      console.error(err);
+      list.innerHTML = `<div class="text-red-600 text-sm text-center py-4">Ralat: ${esc(err.message)}</div>`;
+      showToast('❌ Gagal cadang tajuk.', 'error');
+    }
+  };
+
+  window.pilihTajukRPH = (idx) => {
+    if (idx === 'custom') return;
+    rphTajukTerpilih = rphCadangan[idx];
+  };
+
+  window.janaRPHLengkap = async () => {
+    if (!rphTajukTerpilih || !rphTajukTerpilih.nama) {
+      return showToast('Sila pilih satu tajuk terlebih dahulu.', 'error');
+    }
+    const tahun = document.getElementById('rphTahun').value;
+    const mp = document.getElementById('rphMP').value;
+    const masa = document.getElementById('rphMasa').value || '30';
+    const tarikh = document.getElementById('rphTarikh').value || getLocalDateStr(new Date());
+
+    const box = document.getElementById('rphHasilBox');
+    const content = document.getElementById('rphHasilContent');
+    box.classList.remove('hidden');
+    content.innerHTML = '<div class="text-center py-8"><div class="animate-spin inline-block w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full"></div><p class="mt-2 text-gray-500">AI sedang menjana RPH lengkap...</p></div>';
+
+    try {
+      const res = await fetch('https://penjana-kssr-proxy.juliansimonpeter.workers.dev/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'jana-rph',
+          tahun, mp,
+          tajuk: rphTajukTerpilih.nama,
+          kemahiran: rphTajukTerpilih.kemahiran || '',
+          kod_sk: rphTajukTerpilih.kod_sk || '',
+          masa
+        })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      const text = String(data.hasil || '').trim();
+      if (!text) throw new Error('AI tidak pulangkan RPH.');
+
+      rphHasilSemasa = {
+        tarikh, slot_masa: document.getElementById('rphSlot').value || '',
+        nama_guru_ganti: document.getElementById('rphNamaGuruGanti').value || '',
+        tahun, mata_pelajaran: mp, tajuk: rphTajukTerpilih.nama,
+        text: text
+      };
+      rphEditMode = false;
+      content.textContent = text;
+      showToast('🤖 RPH berjaya dijana!', 'success');
+    } catch (err) {
+      content.innerHTML = `<div class="text-red-600 text-center py-4">Ralat: ${esc(err.message)}</div>`;
+      showToast('❌ Gagal jana RPH.', 'error');
+    }
+  };
+
+  window.editRPH = () => {
+    if (!rphHasilSemasa) return showToast('Tiada RPH untuk diedit.', 'error');
+    const content = document.getElementById('rphHasilContent');
+    if (!rphEditMode) {
+      content.innerHTML = `<textarea id="rphEditArea" class="w-full min-h-[400px] p-2 border rounded-lg font-mono text-xs">${esc(rphHasilSemasa.text)}</textarea>`;
+      rphEditMode = true;
+      showToast('Klik Edit semula untuk simpan perubahan.', 'info');
+    } else {
+      const ta = document.getElementById('rphEditArea');
+      if (ta) rphHasilSemasa.text = ta.value;
+      content.textContent = rphHasilSemasa.text;
+      rphEditMode = false;
+      showToast('✅ Perubahan disimpan.', 'success');
+    }
+  };
+
+  window.salinRPH = () => {
+    if (!rphHasilSemasa) return showToast('Tiada RPH.', 'error');
+    navigator.clipboard.writeText(rphHasilSemasa.text).then(() => showToast('📋 RPH disalin!', 'success'));
+  };
+
+  window.muatTurunRPHTXT = () => {
+    if (!rphHasilSemasa) return showToast('Tiada RPH.', 'error');
+    const blob = new Blob(['\uFEFF' + rphHasilSemasa.text], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `RPH_${rphHasilSemasa.tahun}_${rphHasilSemasa.mata_pelajaran}_${rphHasilSemasa.tajuk}.txt`;
+    a.click();
+  };
+
+  window.janaRPHPDF = () => {
+    if (!rphHasilSemasa) return showToast('Tiada RPH.', 'error');
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pw = 210, ph = 297, ml = 15, mr = 15;
+      const uw = pw - ml - mr;
+      let y = 15;
+
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
+      doc.text('RANCANGAN PENGAJARAN HARIAN (RPH)', pw / 2, y, { align: 'center' }); y += 6;
+      doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+      doc.text('SK RC KUBONG @ 2026', pw / 2, y, { align: 'center' }); y += 8;
+
+      doc.setFontSize(9);
+      const info = [
+        ['Tarikh', formatDateMY(rphHasilSemasa.tarikh)],
+        ['Slot', rphHasilSemasa.slot_masa || '-'],
+        ['Guru Ganti', rphHasilSemasa.nama_guru_ganti || '-'],
+        ['Tahun', rphHasilSemasa.tahun],
+        ['Mata Pelajaran', rphHasilSemasa.mata_pelajaran],
+        ['Tajuk', rphHasilSemasa.tajuk]
+      ];
+      info.forEach(([k, v]) => {
+        doc.setFont('helvetica', 'bold'); doc.text(k + ':', ml, y);
+        doc.setFont('helvetica', 'normal'); doc.text(String(v), ml + 32, y);
+        y += 5;
+      });
+      y += 2;
+      doc.setDrawColor(180); doc.line(ml, y, pw - mr, y); y += 6;
+
+      doc.setFontSize(9.5);
+      const lines = doc.splitTextToSize(rphHasilSemasa.text, uw);
+      lines.forEach(line => {
+        if (y > ph - 15) { doc.addPage(); y = 15; }
+        doc.text(line, ml, y);
+        y += 4.6;
+      });
+
+      doc.save(`RPH_${rphHasilSemasa.tahun}_${rphHasilSemasa.tajuk}.pdf`);
+      showToast('📄 PDF dijana!', 'success');
+    } catch (e) {
+      showToast('Gagal jana PDF: ' + e.message, 'error');
+    }
+  };
+
+  window.simpanRPH = async () => {
+    if (!rphHasilSemasa) return showToast('Tiada RPH untuk disimpan.', 'error');
+    if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
+
+    const { error } = await supabaseClient.from('rph_guru_ganti').insert([{
+      tarikh: rphHasilSemasa.tarikh,
+      slot_masa: rphHasilSemasa.slot_masa,
+      nama_guru_ganti: rphHasilSemasa.nama_guru_ganti,
+      tahun: rphHasilSemasa.tahun,
+      mata_pelajaran: rphHasilSemasa.mata_pelajaran,
+      tajuk: rphHasilSemasa.tajuk,
+      standard_kandungan: null, standard_pembelajaran: null, objektif: null,
+      set_indaksi: null, langkah_pdpc: null, penutup: null, penilaian: null, refleksi: null,
+      jana_ai: true,
+      // Simpan seluruh teks dalam catatan khas (menggunakan medan 'refleksi' sebagai storage)
+      // Untuk mudah: simpan teks penuh dalam medan 'langkah_pdpc' sementara
+      // Nota: anda boleh tambah medan 'teks_penuh' jika mahu
+    }]);
+
+    // Alternatif: simpan teks penuh dalam satu medan — jika jadual tak ada medan text
+    // Buat upsert semula dengan teks
+    if (!error) {
+      const { data: latest } = await supabaseClient.from('rph_guru_ganti').select('id').order('id', { ascending: false }).limit(1).single();
+      if (latest) {
+        await supabaseClient.from('rph_guru_ganti').update({
+          refleksi: rphHasilSemasa.text
+        }).eq('id', latest.id);
+      }
+      showToast('✅ RPH disimpan!', 'success');
+    } else {
+      showToast('Ralat simpan: ' + error.message, 'error');
+    }
+  };
+
+  window.renderSejarahRPH = async () => {
+    const list = document.getElementById('rphSejarahList');
+    if (!list || !supabaseClient) return;
+    const q = (document.getElementById('rphCariSejarah')?.value || '').toLowerCase();
+    const { data } = await supabaseClient.from('rph_guru_ganti').select('*').order('id', { ascending: false });
+    let filtered = data || [];
+    if (q) {
+      filtered = filtered.filter(r =>
+        (r.tajuk || '').toLowerCase().includes(q) ||
+        (r.mata_pelajaran || '').toLowerCase().includes(q) ||
+        (r.tahun || '').toLowerCase().includes(q) ||
+        (r.nama_guru_ganti || '').toLowerCase().includes(q)
+      );
+    }
+    if (!filtered.length) {
+      list.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Tiada RPH disimpan.</p>';
+      return;
+    }
+    list.innerHTML = filtered.map(r => {
+      const teks = r.refleksi || '(tiada teks)';
+      return `
+        <div class="border rounded-xl p-4 hover:bg-gray-50">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold">${esc(r.tahun)}</span>
+              <span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded text-xs font-semibold">${esc(r.mata_pelajaran)}</span>
+              <span class="text-xs text-gray-500">${normalizeDate(r.tarikh)} · ${esc(r.slot_masa || '-')}</span>
+            </div>
+            <div class="flex gap-1">
+              <button onclick="lihatRPHSejarah(${r.id})" class="text-blue-600 text-xs px-2 py-1 rounded hover:bg-blue-50"><i class="fa-solid fa-eye"></i> Lihat</button>
+              <button onclick="padamRPHSejarah(${r.id})" class="text-red-500 text-xs px-2 py-1 rounded hover:bg-red-50"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+          <div class="font-semibold text-gray-800 text-sm">${esc(r.tajuk)}</div>
+          <div class="text-xs text-gray-500 mt-1">Guru: ${esc(r.nama_guru_ganti || '-')}</div>
+        </div>
+      `;
+    }).join('');
+  };
+
+  window.lihatRPHSejarah = async (id) => {
+    const { data } = await supabaseClient.from('rph_guru_ganti').select('*').eq('id', id).single();
+    if (!data) return;
+    rphHasilSemasa = {
+      tarikh: normalizeDate(data.tarikh),
+      slot_masa: data.slot_masa,
+      nama_guru_ganti: data.nama_guru_ganti,
+      tahun: data.tahun,
+      mata_pelajaran: data.mata_pelajaran,
+      tajuk: data.tajuk,
+      text: data.refleksi || ''
+    };
+    tukarTabRPH('jana');
+    const box = document.getElementById('rphHasilBox');
+    box.classList.remove('hidden');
+    document.getElementById('rphHasilContent').textContent = rphHasilSemasa.text;
+    showToast('RPH dimuatkan dari sejarah.', 'info');
+  };
+
+  window.padamRPHSejarah = async (id) => {
+    if (!confirm('Padam RPH ini?')) return;
+    await supabaseClient.from('rph_guru_ganti').delete().eq('id', id);
+    renderSejarahRPH();
+    showToast('RPH dipadam.', 'success');
+  };
+
+  // ==== Integrasi navigateTo ====
+  // Nota: anda perlu ubah 1 baris dalam navigateTo sedia ada (lihat Langkah 5)
 
   // Mula
   window.addEventListener('DOMContentLoaded', async () => {
