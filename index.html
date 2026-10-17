@@ -9,6 +9,15 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- ===== PWA ===== -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#1e3a8a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="eMMI">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231e3a8a'/%3E%3Cstop offset='1' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='192' height='192' rx='42' fill='url(%23g)'/%3E%3Ctext x='96' y='130' text-anchor='middle' font-family='Arial,sans-serif' font-weight='900' font-size='72' fill='white'%3EeMMI%3C/text%3E%3C/svg%3E">
+  <!-- ===== Tamat PWA ===== -->
   <style>
     .sidebar { transition: transform 0.3s ease; }
     .sidebar.open { transform: translateX(0); }
@@ -31,8 +40,7 @@
     <a onclick="navigateTo('dashboard')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-grid-2"></i> Dashboard</a>
     <a onclick="navigateTo('pengurusan')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-user-pen"></i> Pengurusan</a>
     <a onclick="navigateTo('jadual')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-calendar-days"></i> Jadual Waktu</a>
-    <a onclick="navigateTo('penjana')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-robot"></i> Penjana AI</a>
-
+        <a onclick="navigateTo('penjana')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-file-lines"></i> Penjana Lembaran Kerja</a>
         <a onclick="navigateTo('rph')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-file-pen"></i> Jana RPH</a>
   </nav>
   <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 text-center text-xs text-blue-300">
@@ -64,6 +72,25 @@
         <h3 class="font-bold mb-3"><i class="fa-solid fa-chart-bar text-blue-600 mr-2"></i>Analisis Kekerapan Mengikut Mata Pelajaran</h3>
         <div id="analisisKekerapan"></div>
       </div>
+            <!-- ===== Tugasan Minggu Depan ===== -->
+      <div class="bg-white rounded-2xl shadow p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <h3 class="font-bold">
+            <i class="fa-solid fa-calendar-plus text-amber-600 mr-2"></i>
+            Tugasan Guru Ganti Minggu Depan
+          </h3>
+          <div class="flex items-center gap-2">
+            <span id="mingguDepanRange" class="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full font-semibold">—</span>
+            <span id="mingguDepanCounter" class="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full font-semibold">0 tugas</span>
+          </div>
+        </div>
+        <p class="text-xs text-gray-500 mb-3">
+          <i class="fa-solid fa-circle-info text-blue-500"></i>
+          Rancang lebih awal — senarai tugasan guru ganti yang telah dijadualkan untuk <strong>minggu hadapan</strong>.
+        </p>
+        <div id="tugasanMingguDepan"></div>
+      </div>
+      <!-- ===== Tamat Tugasan Minggu Depan ===== -->
       <!-- ===== Guru Tidak Hadir Hari Ini ===== -->
       <div class="bg-white rounded-2xl shadow p-5">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -414,59 +441,111 @@
       </div>
     </div>
 
-    <!-- Penjana AI -->
+       <!-- Penjana Lembaran Kerja AI -->
     <div id="page-penjana" class="page space-y-6">
-      <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-robot text-purple-600 mr-2"></i>Penjana Bahan AI</h2>
-      <p class="text-gray-500 text-sm">Hasilkan RPH dan lembaran kerja berpandukan DSKP KSSR Semakan 2017.</p>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white rounded-2xl shadow p-5">
-          <h3 class="font-bold mb-4">Parameter Penjanaan</h3>
-          <form id="formPenjana" onsubmit="janaBahan(event)">
-            <div class="space-y-4">
-              <div><label class="block text-sm font-semibold">Tahun</label><select id="tahun" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Tahun --</option><option>Tahun 1</option><option>Tahun 2</option><option>Tahun 3</option><option>Tahun 4</option><option>Tahun 5</option><option>Tahun 6</option></select></div>
-              <div><label class="block text-sm font-semibold">Mata Pelajaran</label><select id="mpPenjana" class="w-full px-4 py-2.5 rounded-xl border" required>
-                <option value="">-- Pilih --</option>
-                <option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option>
-                <option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option>
-                <option>Seni Visual</option><option>Muzik</option><option>Sejarah</option>
-                <option>RBT</option><option>TMK</option><option>Bahasa Iban</option>
-              </select></div>
-              <div><label class="block text-sm font-semibold">Standard Kandungan / Tajuk</label><input type="text" id="topik" class="w-full px-4 py-2.5 rounded-xl border" placeholder="Cth: 1.1 Mendengar dan Bertutur" required><p class="text-xs text-gray-400 mt-1">Rujuk DSKP untuk kod standard yang tepat.</p></div>
-              <div><label class="block text-sm font-semibold">Aktiviti / Langkah PdPC</label><textarea id="butiranTambahan" rows="3" class="w-full px-4 py-2.5 rounded-xl border" placeholder="Cth: 1. Murid berbincang dalam kumpulan. 2. Lembaran kerja. 3. Permainan kuiz."></textarea><p class="text-xs text-gray-400 mt-1">Huraikan aktiviti utama untuk membantu AI menjana bahan yang lebih tepat.</p></div>
-            </div>
-            <button type="submit" class="bg-purple-600 text-white w-full py-3 rounded-xl font-semibold mt-5"><i class="fa-solid fa-wand-magic-sparkles"></i> Jana Bahan AI</button>
-          </form>
-        </div>
-        <div class="bg-white rounded-2xl shadow p-5 flex flex-col">
-          <h3 class="font-bold mb-3">Hasil Penjanaan</h3>
-          <div id="outputPenjana" class="flex-1 min-h-[300px] bg-gray-50 rounded-xl p-4 overflow-auto text-sm border"><div class="text-center text-gray-400 py-12"><i class="fa-solid fa-sparkles text-3xl mb-2 block"></i><p>Hasil akan dipaparkan di sini.</p></div></div>
-          <div id="outputActions" class="mt-3 flex gap-2 hidden">
-            <button onclick="salinOutput()" class="border px-4 py-2 rounded-lg text-sm"><i class="fa-solid fa-copy"></i> Salin</button>
-            <button onclick="muatTurunOutput()" class="border px-4 py-2 rounded-lg text-sm"><i class="fa-solid fa-download"></i> Muat Turun TXT</button>
+      <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-file-lines text-purple-600 mr-2"></i>Penjana Lembaran Kerja AI</h2>
+      <p class="text-gray-500 text-sm">AI cadang fokus → anda pilih → AI jana lembaran kerja lengkap berdasarkan Tahun & Mata Pelajaran.</p>
+
+      <!-- Konteks Tugasan -->
+      <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+        <h3 class="font-bold text-blue-800 text-sm mb-2">
+          <i class="fa-solid fa-clipboard-list mr-1"></i> Konteks Tugasan
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+          <div>
+            <label class="block font-semibold text-gray-600 mb-1">Tarikh</label>
+            <input type="date" id="ljkTarikh" class="w-full px-3 py-2 rounded-lg border bg-white text-sm">
+          </div>
+          <div>
+            <label class="block font-semibold text-gray-600 mb-1">Slot</label>
+            <input type="text" id="ljkSlot" class="w-full px-3 py-2 rounded-lg border bg-white text-sm" placeholder="7:20-7:50">
+          </div>
+          <div class="col-span-2">
+            <label class="block font-semibold text-gray-600 mb-1">Rujuk Rekod Ganti (auto-isi)</label>
+            <select id="ljkRujukRekod" onchange="autofillLJK()" class="w-full px-3 py-2 rounded-lg border bg-white text-sm">
+              <option value="">-- Pilih Rekod Ganti --</option>
+            </select>
           </div>
         </div>
       </div>
-    </div>
 
-  </div>
-
-  <div class="text-center text-xs text-gray-400 py-3 border-t border-gray-200 mt-6">
-
-        <!-- ===== Jana RPH ===== -->
-    <div id="page-rph" class="page space-y-6">
-      <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-file-pen text-purple-600 mr-2"></i>Jana RPH Guru Ganti</h2>
-      <p class="text-gray-500 text-sm">AI cadang tajuk mengikut DSKP → anda pilih → AI jana RPH lengkap. Ringkas & pantas.</p>
-
-      <div class="flex gap-2 border-b border-gray-200">
-        <button id="rphTabJana" onclick="tukarTabRPH('jana')" class="px-5 py-2.5 font-semibold text-purple-700 border-b-2 border-purple-600">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> Jana RPH
-        </button>
-        <button id="rphTabSejarah" onclick="tukarTabRPH('sejarah')" class="px-5 py-2.5 font-semibold text-gray-500 hover:text-gray-700 border-b-2 border-transparent">
-          <i class="fa-solid fa-clock-rotate-left"></i> Sejarah RPH
+      <!-- Parameter -->
+      <div class="bg-white rounded-2xl shadow p-5">
+        <h3 class="font-bold mb-3"><i class="fa-solid fa-sliders text-purple-600 mr-2"></i>Parameter Lembaran Kerja</h3>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-sm font-semibold mb-1">Tahun</label>
+            <select id="ljkTahun" class="w-full px-4 py-2.5 rounded-xl border" required>
+              <option value="">-- Pilih Tahun --</option>
+              <option>Tahun 1</option><option>Tahun 2</option><option>Tahun 3</option>
+              <option>Tahun 4</option><option>Tahun 5</option><option>Tahun 6</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-1">Mata Pelajaran</label>
+            <select id="ljkMP" class="w-full px-4 py-2.5 rounded-xl border" required>
+              <option value="">-- Pilih --</option>
+              <option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option>
+              <option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option>
+              <option>Seni Visual</option><option>Muzik</option><option>Sejarah</option>
+              <option>RBT</option><option>TMK</option><option>Bahasa Iban</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-1">Jenis</label>
+            <select id="ljkJenis" class="w-full px-4 py-2.5 rounded-xl border">
+              <option>Latihan</option>
+              <option>Kuiz</option>
+              <option>Aktiviti</option>
+              <option>Ujian Kecil</option>
+              <option>Pengukuhan</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-1">Bilangan Soalan</label>
+            <select id="ljkBilangan" class="w-full px-4 py-2.5 rounded-xl border">
+              <option value="5">5 soalan</option>
+              <option value="8" selected>8 soalan</option>
+              <option value="10">10 soalan</option>
+              <option value="15">15 soalan</option>
+            </select>
+          </div>
+        </div>
+        <button onclick="cadangFokusLJK()" class="mt-4 bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-xl font-semibold w-full md:w-auto">
+          <i class="fa-solid fa-lightbulb"></i> Cadang Fokus Dengan AI
         </button>
       </div>
 
-      <!-- ==== TAB JANA RPH ==== -->
+      <!-- Senarai fokus cadangan -->
+      <div id="ljkFokusBox" class="bg-white rounded-2xl shadow p-5 hidden">
+        <h3 class="font-bold mb-3"><i class="fa-solid fa-list-check text-amber-500 mr-2"></i>Pilih Fokus Lembaran Kerja</h3>
+        <div id="ljkFokusList" class="space-y-2 mb-4"></div>
+        <button onclick="janaLembaranKerja()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl font-semibold w-full">
+          <i class="fa-solid fa-robot"></i> Jana Lembaran Kerja Untuk Fokus Terpilih
+        </button>
+      </div>
+
+      <!-- Hasil -->
+      <div id="ljkHasilBox" class="bg-white rounded-2xl shadow p-5 hidden">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <h3 class="font-bold"><i class="fa-solid fa-file-lines text-purple-600 mr-2"></i>Hasil Lembaran Kerja</h3>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="editLJK()" class="border px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-pen"></i> Edit</button>
+            <button onclick="salinLJK()" class="border px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-copy"></i> Salin</button>
+            <button onclick="muatTurunLJKTXT()" class="border px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-download"></i> TXT</button>
+            <button onclick="janaLJKPDF()" class="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          </div>
+        </div>
+        <div id="ljkHasilContent" class="bg-gray-50 rounded-xl p-4 text-sm border whitespace-pre-wrap font-mono leading-relaxed"></div>
+      </div>
+    </div>
+       
+  </div>
+
+  <div class="text-center text-xs text-gray-400 py-3 border-t border-gray-200 mt-6">
+  <div class="text-center text-xs text-gray-400 py-3 border-t border-gray-200 mt-6"></div>
+ 
+
       <div id="rphPaneJana" class="space-y-4">
         <!-- Konteks tugasan -->
         <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4">
@@ -1045,10 +1124,11 @@ _- Sistem eMMI_`;
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(`page-${page}`).classList.add('active');
     if (window.innerWidth < 1024) closeSidebar();
-    if (page === 'dashboard') { updateDashboard(); renderAnalisisKekerapan(); renderGuruTidakHadirHariIni(); }
+       if (page === 'dashboard') { updateDashboard(); renderAnalisisKekerapan(); renderGuruTidakHadirHariIni(); renderTugasanMingguDepan(); }
     else if (page === 'pengurusan') { updateCariGuruDropdown(); renderTable(); refreshPdfTarikhOptions(); muatTelefonGuru(); }
         else if (page === 'jadual') renderJadual();
-    else if (page === 'rph') { muatRekodUntukRPH(); renderSejarahRPH(); }
+    else if (page === 'penjana') { muatRekodUntukLJK(); }
+      else if (page === 'rph') { muatRekodUntukRPH(); renderSejarahRPH(); }
   };
   window.toggleSidebar = () => {
     document.getElementById('sidebar').classList.toggle('open');
@@ -1219,11 +1299,11 @@ _- Sistem eMMI_`;
     document.getElementById('formGuruGanti').reset();
     document.getElementById('hariGanti').value = '';
     document.getElementById('guruGanti').innerHTML = '<option value="">-- Pilih Tarikh, Slot & Hari Dahulu --</option>';
-    renderTable(); updateDashboard(); refreshPdfTarikhOptions(); renderAnalisisKekerapan(); renderGuruTidakHadirHariIni();
+    renderTable(); updateDashboard(); refreshPdfTarikhOptions(); renderAnalisisKekerapan(); renderGuruTidakHadirHariIni(); renderTugasanMingguDepan();
     showToast('Rekod disimpan!', 'success');
   };
 
-  window.padamRekod = async (id) => { if (!supabaseClient) return; await supabaseClient.from('rekod_guru_ganti').delete().eq('id', id); renderTable(); updateDashboard(); refreshPdfTarikhOptions(); renderAnalisisKekerapan(); renderGuruTidakHadirHariIni(); };
+   window.padamRekod = async (id) => { if (!supabaseClient) return; await supabaseClient.from('rekod_guru_ganti').delete().eq('id', id); renderTable(); updateDashboard(); refreshPdfTarikhOptions(); renderAnalisisKekerapan(); renderGuruTidakHadirHariIni(); renderTugasanMingguDepan(); };
   window.resetBorang = () => {
     document.getElementById('formGuruGanti').reset();
     document.getElementById('hariGanti').value = '';
@@ -1619,58 +1699,255 @@ _- Sistem eMMI_`;
     showToast(`Guru ganti ${guruGanti} dipilih untuk ${hari} (${today}). Klik Simpan.`, 'success');
   };
 
-  // Penjana AI
-  window.janaBahan = async (e) => {
-    e.preventDefault();
-    const tahun = document.getElementById('tahun').value;
-    const mp = document.getElementById('mpPenjana').value;
-    const topik = document.getElementById('topik').value.trim();
-    const butiran = document.getElementById('butiranTambahan').value.trim();
-    if (!tahun || !mp || !topik) return showToast('Lengkapkan Tahun, Mata Pelajaran, dan Tajuk/Standard.', 'error');
-    const out = document.getElementById('outputPenjana');
-    const act = document.getElementById('outputActions');
-    out.innerHTML = '<div class="text-center py-8"><div class="animate-spin inline-block w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full"></div><p class="mt-2 text-gray-500">Menjana melalui DeepSeek AI...</p></div>';
-    act.classList.add('hidden');
+    // ============================================================
+  // PENJANA LEMBARAN KERJA AI
+  // ============================================================
+  let ljkFokusCadangan = [];
+  let ljkFokusTerpilih = null;
+  let ljkHasilSemasa = null;
+  let ljkEditMode = false;
+  let ljkRekodCache = [];
+
+  async function muatRekodUntukLJK() {
+    if (!supabaseClient) return;
+    const { data } = await supabaseClient.from('rekod_guru_ganti').select('*').order('tarikh', { ascending: false }).limit(50);
+    ljkRekodCache = data || [];
+    const sel = document.getElementById('ljkRujukRekod');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">-- Pilih Rekod Ganti --</option>' +
+      ljkRekodCache.map(r => {
+        const tgl = normalizeDate(r.tarikh);
+        return `<option value="${r.id}">${tgl} · ${r.slot_masa} · ${r.kelas} · ${r.mata_pelajaran}</option>`;
+      }).join('');
+  }
+
+  window.autofillLJK = () => {
+    const id = document.getElementById('ljkRujukRekod').value;
+    if (!id) return;
+    const r = ljkRekodCache.find(x => String(x.id) === String(id));
+    if (!r) return;
+    document.getElementById('ljkTarikh').value = normalizeDate(r.tarikh);
+    document.getElementById('ljkSlot').value = r.slot_masa || '';
+    if (r.kelas) document.getElementById('ljkTahun').value = r.kelas;
+    if (r.mata_pelajaran) document.getElementById('ljkMP').value = r.mata_pelajaran;
+    showToast('✅ Konteks diisi dari rekod ganti.', 'success');
+  };
+
+  window.cadangFokusLJK = async () => {
+    const tahun = document.getElementById('ljkTahun').value;
+    const mp = document.getElementById('ljkMP').value;
+    const jenis = document.getElementById('ljkJenis').value;
+    if (!tahun || !mp) return showToast('Pilih Tahun dan Mata Pelajaran dahulu.', 'error');
+
+    const box = document.getElementById('ljkFokusBox');
+    const list = document.getElementById('ljkFokusList');
+    box.classList.remove('hidden');
+    document.getElementById('ljkHasilBox').classList.add('hidden');
+    list.innerHTML = '<div class="text-center py-6"><div class="animate-spin inline-block w-6 h-6 border-4 border-purple-200 border-t-purple-600 rounded-full"></div><p class="mt-2 text-gray-500 text-sm">AI sedang mencadang fokus...</p></div>';
+
     try {
       const res = await fetch('https://penjana-kssr-proxy.juliansimonpeter.workers.dev/', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tahun, mp, topik, butiran })
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'cadang-fokus-ljk', tahun, mp, jenis })
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      out.innerHTML = data.hasil.replace(/\n/g, '<br>');
-      act.classList.remove('hidden');
-      penjanaCount++; localStorage.setItem('penjanaCount', penjanaCount);
-      updateDashboard();
-      showToast('🤖 Bahan berjaya dijana!', 'success');
+
+      // Cuba parse JSON
+      let fokusArr = null;
+      if (Array.isArray(data.fokus)) fokusArr = data.fokus;
+      else if (Array.isArray(data.tajuk)) fokusArr = data.tajuk;
+      else {
+        try {
+          const m = String(data.hasil || '').match(/\{[\s\S]*\}/);
+          if (m) {
+            const parsed = JSON.parse(m[0]);
+            if (Array.isArray(parsed.fokus)) fokusArr = parsed.fokus;
+            else if (Array.isArray(parsed.tajuk)) fokusArr = parsed.tajuk;
+          }
+        } catch (_) {}
+      }
+      // Fallback: parse baris
+      if (!fokusArr) {
+        const lines = String(data.hasil || '').split('\n').filter(l => l.trim());
+        fokusArr = lines.filter(l => /^\s*\d+\./.test(l)).map(l => {
+          const parts = l.replace(/^\s*\d+\.\s*/, '').split('—').map(s => s.trim());
+          return { nama: parts[0] || l, keterangan: parts[1] || '', jenis: jenis };
+        });
+      }
+      if (!fokusArr || !fokusArr.length) throw new Error('AI tidak pulangkan senarai fokus. Cuba semula.');
+
+      ljkFokusCadangan = fokusArr.slice(0, 6);
+      list.innerHTML = ljkFokusCadangan.map((f, i) => `
+        <label class="flex items-start gap-3 p-3 border rounded-xl hover:bg-purple-50 cursor-pointer transition">
+          <input type="radio" name="ljkFokusPilih" value="${i}" onchange="pilihFokusLJK(${i})" class="mt-1">
+          <div class="flex-1">
+            <div class="font-semibold text-gray-800">${esc(f.nama || '-')}</div>
+            ${f.keterangan ? `<div class="text-xs text-purple-700 mt-0.5"><i class="fa-solid fa-bookmark"></i> ${esc(f.keterangan)}</div>` : ''}
+            ${f.jenis ? `<div class="text-xs text-gray-500 mt-0.5">Jenis: ${esc(f.jenis)}</div>` : ''}
+          </div>
+        </label>
+      `).join('') + `
+        <label class="flex items-start gap-3 p-3 border rounded-xl hover:bg-purple-50 cursor-pointer transition bg-amber-50/50">
+          <input type="radio" name="ljkFokusPilih" value="custom" onchange="pilihFokusLJK('custom')" class="mt-1">
+          <div class="flex-1">
+            <div class="font-semibold text-gray-800">⚪ Fokus Sendiri</div>
+            <input type="text" id="ljkFokusCustom" placeholder="Taip fokus anda..." class="mt-2 w-full px-3 py-2 rounded-lg border text-sm" oninput="ljkFokusTerpilih = { nama: this.value.trim(), keterangan: 'Pilihan guru', jenis: 'Latihan' }">
+          </div>
+        </label>
+      `;
+      showToast('✅ AI cadang 6 fokus. Sila pilih satu.', 'success');
     } catch (err) {
-      out.innerHTML = `<div class="text-red-600 text-center py-6">Ralat: ${esc(err.message)}</div>`;
-      act.classList.add('hidden');
-      showToast('❌ Gagal menjana bahan.', 'error');
+      console.error(err);
+      list.innerHTML = `<div class="text-red-600 text-sm text-center py-4">Ralat: ${esc(err.message)}</div>`;
+      showToast('❌ Gagal cadang fokus.', 'error');
+    }
+  };
+
+  window.pilihFokusLJK = (idx) => {
+    if (idx === 'custom') return;
+    ljkFokusTerpilih = ljkFokusCadangan[idx];
+  };
+
+  window.janaLembaranKerja = async () => {
+    if (!ljkFokusTerpilih || !ljkFokusTerpilih.nama) {
+      return showToast('Sila pilih satu fokus terlebih dahulu.', 'error');
+    }
+    const tahun = document.getElementById('ljkTahun').value;
+    const mp = document.getElementById('ljkMP').value;
+    const jenis = document.getElementById('ljkJenis').value;
+    const bilangan = document.getElementById('ljkBilangan').value || '8';
+    const tarikh = document.getElementById('ljkTarikh').value || getLocalDateStr(new Date());
+
+    const box = document.getElementById('ljkHasilBox');
+    const content = document.getElementById('ljkHasilContent');
+    box.classList.remove('hidden');
+    content.innerHTML = '<div class="text-center py-8"><div class="animate-spin inline-block w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full"></div><p class="mt-2 text-gray-500">AI sedang menjana lembaran kerja...</p></div>';
+
+    try {
+      const res = await fetch('https://penjana-kssr-proxy.juliansimonpeter.workers.dev/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'jana-ljk',
+          tahun, mp, jenis,
+          fokus: ljkFokusTerpilih.nama,
+          keterangan: ljkFokusTerpilih.keterangan || '',
+          bilangan: parseInt(bilangan) || 8
+        })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      const text = String(data.hasil || '').trim();
+      if (!text) throw new Error('AI tidak pulangkan lembaran kerja.');
+
+      ljkHasilSemasa = {
+        tarikh,
+        slot_masa: document.getElementById('ljkSlot').value || '',
+        tahun, mata_pelajaran: mp, jenis,
+        fokus: ljkFokusTerpilih.nama,
+        text: text
+      };
+      ljkEditMode = false;
+      content.textContent = text;
+      showToast('📝 Lembaran kerja berjaya dijana!', 'success');
+    } catch (err) {
+      content.innerHTML = `<div class="text-red-600 text-center py-4">Ralat: ${esc(err.message)}</div>`;
+      showToast('❌ Gagal jana lembaran kerja.', 'error');
+    }
+  };
+
+  window.editLJK = () => {
+    if (!ljkHasilSemasa) return showToast('Tiada lembaran kerja untuk diedit.', 'error');
+    const content = document.getElementById('ljkHasilContent');
+    if (!ljkEditMode) {
+      content.innerHTML = `<textarea id="ljkEditArea" class="w-full min-h-[400px] p-2 border rounded-lg font-mono text-xs">${esc(ljkHasilSemasa.text)}</textarea>`;
+      ljkEditMode = true;
+      showToast('Klik Edit semula untuk simpan perubahan.', 'info');
+    } else {
+      const ta = document.getElementById('ljkEditArea');
+      if (ta) ljkHasilSemasa.text = ta.value;
+      content.textContent = ljkHasilSemasa.text;
+      ljkEditMode = false;
+      showToast('✅ Perubahan disimpan.', 'success');
+    }
+  };
+
+  window.salinLJK = () => {
+    if (!ljkHasilSemasa) return showToast('Tiada lembaran kerja.', 'error');
+    navigator.clipboard.writeText(ljkHasilSemasa.text).then(() => showToast('📋 Lembaran kerja disalin!', 'success'));
+  };
+
+  window.muatTurunLJKTXT = () => {
+    if (!ljkHasilSemasa) return showToast('Tiada lembaran kerja.', 'error');
+    const blob = new Blob(['\uFEFF' + ljkHasilSemasa.text], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `LK_${ljkHasilSemasa.tahun}_${ljkHasilSemasa.mata_pelajaran}_${ljkHasilSemasa.fokus}.txt`;
+    a.click();
+  };
+
+  window.janaLJKPDF = () => {
+    if (!ljkHasilSemasa) return showToast('Tiada lembaran kerja.', 'error');
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pw = 210, ph = 297, ml = 15, mr = 15;
+      const uw = pw - ml - mr;
+      let y = 15;
+
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
+      doc.text('LEMBARAN KERJA', pw / 2, y, { align: 'center' }); y += 6;
+      doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+      doc.text('SK RC KUBONG @ 2026', pw / 2, y, { align: 'center' }); y += 8;
+
+      doc.setFontSize(9);
+      const info = [
+        ['Tarikh', formatDateMY(ljkHasilSemasa.tarikh)],
+        ['Slot', ljkHasilSemasa.slot_masa || '-'],
+        ['Tahun', ljkHasilSemasa.tahun],
+        ['Mata Pelajaran', ljkHasilSemasa.mata_pelajaran],
+        ['Fokus', ljkHasilSemasa.fokus]
+      ];
+      info.forEach(([k, v]) => {
+        doc.setFont('helvetica', 'bold'); doc.text(k + ':', ml, y);
+        doc.setFont('helvetica', 'normal'); doc.text(String(v), ml + 35, y);
+        y += 5;
+      });
+      y += 2;
+      doc.setDrawColor(180); doc.line(ml, y, pw - mr, y); y += 6;
+
+      doc.setFontSize(9.5);
+      const lines = doc.splitTextToSize(ljkHasilSemasa.text, uw);
+      lines.forEach(line => {
+        if (y > ph - 15) { doc.addPage(); y = 15; }
+        doc.text(line, ml, y);
+        y += 4.6;
+      });
+
+      doc.save(`LK_${ljkHasilSemasa.tahun}_${ljkHasilSemasa.fokus}.pdf`);
+      showToast('📄 PDF dijana!', 'success');
+    } catch (e) {
+      showToast('Gagal jana PDF: ' + e.message, 'error');
     }
   };
 
   window.janaBahanDariRekod = (kelas, mp, slot) => {
     navigateTo('penjana');
     setTimeout(() => {
-      document.getElementById('tahun').value = 'Tahun 4';
-      document.getElementById('mpPenjana').value = mp;
-      document.getElementById('topik').value = '';
-      document.getElementById('butiranTambahan').value = `[Kelas: ${kelas}, Slot: ${slot}] Sila nyatakan aktiviti dan langkah PdPC.`;
-      document.getElementById('topik').focus();
-      showToast('Sila lengkapkan Standard Kandungan dan Aktiviti untuk janaan tepat.', 'info');
+      if (kelas) document.getElementById('ljkTahun').value = kelas;
+      if (mp) document.getElementById('ljkMP').value = mp;
+      if (slot) document.getElementById('ljkSlot').value = slot;
+      document.getElementById('ljkTarikh').value = getLocalDateStr(new Date());
+      showToast('Sila pilih Jenis & Bilangan Soalan, kemudian klik "Cadang Fokus".', 'info');
     }, 300);
   };
 
-  window.salinOutput = () => navigator.clipboard.writeText(document.getElementById('outputPenjana').innerText).then(() => showToast('Disalin!', 'success'));
-  window.muatTurunOutput = () => {
-    const text = document.getElementById('outputPenjana').innerText;
-    if (!text.trim()) return showToast('Tiada kandungan.', 'error');
-    const blob = new Blob(['\uFEFF' + text], { type: 'text/plain' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'bahan_kssr.txt'; a.click();
-  };
-
+  window.salinOutput = () => salinLJK();
+  window.muatTurunOutput = () => muatTurunLJKTXT();
   // ==================== DASHBOARD ====================
   async function updateDashboard() {
     if (!supabaseClient) return;
@@ -1935,6 +2212,135 @@ _- Sistem eMMI_`;
     container.innerHTML = html;
   }
   // ===== Tamat Guru Tidak Hadir Hari Ini =====
+    // ============================================================
+  // TUGASAN MINGGU DEPAN
+  // ============================================================
+  async function renderTugasanMingguDepan() {
+    const container = document.getElementById('tugasanMingguDepan');
+    const counterEl = document.getElementById('mingguDepanCounter');
+    const rangeEl = document.getElementById('mingguDepanRange');
+    if (!container) return;
+    if (!supabaseClient) {
+      container.innerHTML = '<p class="text-gray-500 text-sm">Pangkalan data tidak bersambung.</p>';
+      return;
+    }
+
+    // Kira tarikh Isnin & Jumaat minggu depan
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const daysToNextMonday = ((8 - today.getDay()) % 7) || 7;
+    const nextMonday = new Date(today);
+    nextMonday.setDate(today.getDate() + daysToNextMonday);
+    const nextFriday = new Date(nextMonday);
+    nextFriday.setDate(nextMonday.getDate() + 4);
+    const nextMondayStr = getLocalDateStr(nextMonday);
+    const nextFridayStr = getLocalDateStr(nextFriday);
+
+    // Papar range tarikh
+    const fmtShort = (d) => d.toLocaleDateString('ms-MY', { day: '2-digit', month: 'short' });
+    if (rangeEl) rangeEl.textContent = `📅 ${fmtShort(nextMonday)} – ${fmtShort(nextFriday)} ${nextFriday.getFullYear()}`;
+
+    const { data: records } = await supabaseClient
+      .from('rekod_guru_ganti')
+      .select('*')
+      .gte('tarikh', nextMondayStr)
+      .lte('tarikh', nextFridayStr)
+      .order('tarikh', { ascending: true });
+
+    if (!records?.length) {
+      if (counterEl) counterEl.textContent = '0 tugas';
+      container.innerHTML = `
+        <div class="text-center py-8 text-gray-400">
+          <i class="fa-regular fa-calendar text-4xl mb-2 block"></i>
+          <p class="text-sm">Tiada tugasan dirancang untuk minggu depan.</p>
+          <p class="text-xs mt-1">Anda boleh mula daftar di menu <strong>Pengurusan</strong>.</p>
+        </div>`;
+      return;
+    }
+
+    if (counterEl) counterEl.textContent = `${records.length} tugas`;
+
+    // Susun ikut tarikh → slot
+    const slotOrder = ["7:20-7:50","7:50-8:20","8:20-8:50","8:50-9:20","9:20-9:50",
+                       "10:10-10:40","10:40-11:10","11:10-11:40","11:40-12:10",
+                       "12:10-12:40","12:40-1:10"];
+    const sorted = [...records].sort((a, b) => {
+      const da = normalizeDate(a.tarikh), db = normalizeDate(b.tarikh);
+      if (da !== db) return da.localeCompare(db);
+      return slotOrder.indexOf(a.slot_masa) - slotOrder.indexOf(b.slot_masa);
+    });
+
+    // Kumpulkan ikut tarikh
+    const grouped = {};
+    sorted.forEach(r => {
+      const k = normalizeDate(r.tarikh);
+      if (!grouped[k]) grouped[k] = [];
+      grouped[k].push(r);
+    });
+
+    let html = '<div class="space-y-4">';
+    Object.keys(grouped).sort().forEach(tarikh => {
+      const recs = grouped[tarikh];
+      const hariNama = ['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'][new Date(tarikh + 'T00:00:00').getDay()];
+      const tarikhFmt = new Date(tarikh + 'T00:00:00').toLocaleDateString('ms-MY', { day: '2-digit', month: 'long', year: 'numeric' });
+
+      // Kira unik guru ganti
+      const guruGantiUnik = [...new Set(recs.map(r => r.guru_ganti))];
+
+      html += `
+        <div class="border border-amber-200 rounded-xl overflow-hidden">
+          <div class="bg-gradient-to-r from-amber-50 to-yellow-50 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-amber-200">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="font-bold text-amber-800">
+                <i class="fa-solid fa-calendar-day mr-1"></i>${hariNama}
+              </span>
+              <span class="text-xs text-amber-700">${tarikhFmt}</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="bg-white text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-semibold">📚 ${recs.length} slot</span>
+              <span class="bg-white text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-semibold">👥 ${guruGantiUnik.length} guru ganti</span>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="text-left p-2 font-semibold text-gray-600 text-xs">Slot</th>
+                  <th class="text-left p-2 font-semibold text-gray-600 text-xs">Guru Tak Hadir</th>
+                  <th class="text-left p-2 font-semibold text-gray-600 text-xs">Guru Ganti</th>
+                  <th class="text-left p-2 font-semibold text-gray-600 text-xs">Kelas</th>
+                  <th class="text-left p-2 font-semibold text-gray-600 text-xs">Mata Pelajaran</th>
+                  <th class="text-left p-2 font-semibold text-gray-600 text-xs">Jenis</th>
+                </tr>
+              </thead>
+              <tbody>`;
+
+      recs.forEach(r => {
+        const jenis = r.jenis_tugasan || '-';
+        const badgeWarna = jenis === 'Cuti Sakit' ? 'bg-red-50 text-red-700 border-red-200'
+                        : jenis === 'Kursus' ? 'bg-purple-50 text-purple-700 border-purple-200'
+                        : jenis === 'Bengkel' ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                        : jenis === 'Mesyuarat' ? 'bg-blue-50 text-blue-700 border-blue-200'
+                        : jenis === 'Taklimat' ? 'bg-cyan-50 text-cyan-700 border-cyan-200'
+                        : jenis === 'Cuti Kecemasan' ? 'bg-orange-50 text-orange-700 border-orange-200'
+                        : 'bg-gray-50 text-gray-700 border-gray-200';
+        html += `
+          <tr class="border-t border-gray-100 hover:bg-amber-50/30">
+            <td class="p-2 text-indigo-700 font-medium text-xs">${esc(r.slot_masa)}</td>
+            <td class="p-2 text-red-600 text-xs">${esc(r.guru_tak_hadir)}</td>
+            <td class="p-2 text-emerald-700 font-semibold text-xs">${esc(r.guru_ganti)}</td>
+            <td class="p-2 text-xs">${esc(r.kelas)}</td>
+            <td class="p-2 text-xs">${esc(r.mata_pelajaran)}</td>
+            <td class="p-2"><span class="border ${badgeWarna} px-2 py-0.5 rounded-full text-xs font-semibold">${esc(jenis)}</span></td>
+          </tr>`;
+      });
+
+      html += `</tbody></table></div></div>`;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  }
+  // ===== Tamat Tugasan Minggu Depan =====
 
   // ==================== ANALISIS KEKERAPAN ====================
   let analisisView = { mode: 'mingguan', offset: 0 };
@@ -2508,38 +2914,27 @@ _- Sistem eMMI_`;
     }
   };
 
-  window.simpanRPH = async () => {
+   window.simpanRPH = async () => {
     if (!rphHasilSemasa) return showToast('Tiada RPH untuk disimpan.', 'error');
     if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
 
-    const { error } = await supabaseClient.from('rph_guru_ganti').insert([{
+    const payload = {
       tarikh: rphHasilSemasa.tarikh,
-      slot_masa: rphHasilSemasa.slot_masa,
-      nama_guru_ganti: rphHasilSemasa.nama_guru_ganti,
+      slot_masa: rphHasilSemasa.slot_masa || null,
+      nama_guru_ganti: rphHasilSemasa.nama_guru_ganti || null,
       tahun: rphHasilSemasa.tahun,
       mata_pelajaran: rphHasilSemasa.mata_pelajaran,
       tajuk: rphHasilSemasa.tajuk,
-      standard_kandungan: null, standard_pembelajaran: null, objektif: null,
-      set_indaksi: null, langkah_pdpc: null, penutup: null, penilaian: null, refleksi: null,
-      jana_ai: true,
-      // Simpan seluruh teks dalam catatan khas (menggunakan medan 'refleksi' sebagai storage)
-      // Untuk mudah: simpan teks penuh dalam medan 'langkah_pdpc' sementara
-      // Nota: anda boleh tambah medan 'teks_penuh' jika mahu
-    }]);
+      kemahiran: rphHasilSemasa.kemahiran || null,
+      kod_sk: rphHasilSemasa.kod_sk || null,
+      masa_minit: parseInt(document.getElementById('rphMasa').value) || 30,
+      teks_penuh: rphHasilSemasa.text,
+      jana_ai: true
+    };
 
-    // Alternatif: simpan teks penuh dalam satu medan — jika jadual tak ada medan text
-    // Buat upsert semula dengan teks
-    if (!error) {
-      const { data: latest } = await supabaseClient.from('rph_guru_ganti').select('id').order('id', { ascending: false }).limit(1).single();
-      if (latest) {
-        await supabaseClient.from('rph_guru_ganti').update({
-          refleksi: rphHasilSemasa.text
-        }).eq('id', latest.id);
-      }
-      showToast('✅ RPH disimpan!', 'success');
-    } else {
-      showToast('Ralat simpan: ' + error.message, 'error');
-    }
+    const { error } = await supabaseClient.from('rph_guru_ganti').insert([payload]);
+    if (error) return showToast('Ralat simpan: ' + error.message, 'error');
+    showToast('✅ RPH disimpan!', 'success');
   };
 
   window.renderSejarahRPH = async () => {
@@ -2622,8 +3017,53 @@ _- Sistem eMMI_`;
     await refreshPdfTarikhOptions();
     await renderAnalisisKekerapan();
     await renderGuruTidakHadirHariIni();
+    await renderTugasanMingguDepan();
     navigateTo('dashboard');
   });
 </script>
+
+  <!-- ===== PWA: Service Worker + Install Button ===== -->
+  <script>
+    // Daftar Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => console.log('✅ SW registered:', reg.scope))
+          .catch((err) => console.warn('⚠️ SW gagal:', err.message));
+      });
+    }
+
+    // Tangkap install prompt
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById('pwaInstallBtn');
+      if (btn) btn.classList.remove('hidden');
+    });
+
+    window.installPWA = async () => {
+      if (!deferredPrompt) {
+        alert('Untuk install:\n\n• Android Chrome: Menu (⋮) → "Install app" / "Add to Home screen"\n• iPhone Safari: Kongsi (⬆️) → "Add to Home Screen"');
+        return;
+      }
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('Install outcome:', outcome);
+      deferredPrompt = null;
+      const btn = document.getElementById('pwaInstallBtn');
+      if (btn) btn.classList.add('hidden');
+    };
+  </script>
+
+  <!-- Butang Install PWA (di bawah kanan) -->
+  <button id="pwaInstallBtn" onclick="installPWA()" class="hidden fixed bottom-24 right-6 z-[80] bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-full shadow-2xl font-semibold items-center gap-2 transition-all" style="display: none;">
+    <i class="fa-solid fa-mobile-screen-button text-lg"></i>
+    <span>Install App</span>
+  </button>
+  <style>
+    #pwaInstallBtn:not(.hidden) { display: flex !important; }
+  </style>
+  <!-- ===== Tamat PWA ===== -->
 </body>
 </html>
