@@ -40,8 +40,8 @@
     <a onclick="navigateTo('dashboard')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-grid-2"></i> Dashboard</a>
     <a onclick="navigateTo('pengurusan')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-user-pen"></i> Pengurusan</a>
     <a onclick="navigateTo('jadual')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-calendar-days"></i> Jadual Waktu</a>
-        <a onclick="navigateTo('penjana')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-file-lines"></i> Penjana Lembaran Kerja</a>
-        <a onclick="navigateTo('rph')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-file-pen"></i> Jana RPH</a>
+    <a onclick="navigateTo('penjana')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-file-lines"></i> Penjana Lembaran Kerja</a>
+    <a onclick="navigateTo('rph')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 cursor-pointer"><i class="fa-solid fa-file-pen"></i> Jana RPH</a>
   </nav>
   <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 text-center text-xs text-blue-300">
     <i class="fa-regular fa-copyright"></i> 2026 SK RC KUBONG<br>
@@ -72,7 +72,7 @@
         <h3 class="font-bold mb-3"><i class="fa-solid fa-chart-bar text-blue-600 mr-2"></i>Analisis Kekerapan Mengikut Mata Pelajaran</h3>
         <div id="analisisKekerapan"></div>
       </div>
-            <!-- ===== Tugasan Minggu Depan ===== -->
+      <!-- ===== Tugasan Minggu Depan ===== -->
       <div class="bg-white rounded-2xl shadow p-5">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
           <h3 class="font-bold">
@@ -91,6 +91,7 @@
         <div id="tugasanMingguDepan"></div>
       </div>
       <!-- ===== Tamat Tugasan Minggu Depan ===== -->
+      
       <!-- ===== Guru Tidak Hadir Hari Ini ===== -->
       <div class="bg-white rounded-2xl shadow p-5">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -122,6 +123,7 @@
     <!-- Pengurusan Guru Ganti -->
     <div id="page-pengurusan" class="page space-y-6">
       <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-user-pen text-blue-600 mr-2"></i>Pengurusan Guru Ganti</h2>
+      
       <div class="bg-white rounded-2xl shadow p-5">
         <h3 class="font-bold">Cari Guru Ganti</h3>
         <div class="flex flex-wrap gap-3">
@@ -197,7 +199,8 @@
               <option>Tahun 4</option><option>Tahun 5</option><option>Tahun 6</option>
             </select>
           </div>
-          <div><label class="block text-sm font-semibold">Mata Pelajaran</label>
+          <div>
+            <label class="block text-sm font-semibold">Mata Pelajaran</label>
             <select id="mataPelajaran" class="w-full px-4 py-2.5 rounded-xl border" required>
               <option value="">-- Pilih --</option>
               <option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option>
@@ -216,18 +219,23 @@
       <div class="bg-white rounded-2xl shadow p-5">
         <h3 class="font-bold mb-2">Senarai Rekod</h3>
         <button onclick="eksportCSV()" class="border px-4 py-1.5 rounded-lg text-sm mb-2"><i class="fa-solid fa-download"></i> Eksport CSV</button>
-        <div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3">#</th><th class="p-3">Guru Tak Hadir</th><th class="p-3">Jenis</th><th class="p-3">Slot</th><th class="p-3">Guru Ganti</th><th class="p-3">Kelas</th><th class="p-3">MP</th><th class="p-3">Tarikh</th><th class="p-3">Tindakan</th></tr></thead><tbody id="tbodyRekod"></tbody></table></div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50">
+              <tr><th class="p-3">#</th><th class="p-3">Guru Tak Hadir</th><th class="p-3">Jenis</th><th class="p-3">Slot</th><th class="p-3">Guru Ganti</th><th class="p-3">Kelas</th><th class="p-3">MP</th><th class="p-3">Tarikh</th><th class="p-3">Tindakan</th></tr>
+            </thead>
+            <tbody id="tbodyRekod"></tbody>
+          </table>
+        </div>
       </div>
 
       <!-- ===== Senarai No. Telefon Guru (WhatsApp) ===== -->
       <div class="bg-white rounded-2xl shadow p-5">
         <h3 class="font-bold mb-2">
-          <i class="fa-brands fa-whatsapp text-green-600 mr-2"></i>
-          Senarai No. Telefon Guru (WhatsApp)
+          <i class="fa-brands fa-whatsapp text-green-600 mr-2"></i>Senarai No. Telefon Guru (WhatsApp)
         </h3>
         <p class="text-xs text-gray-500 mb-3">
-          <i class="fa-solid fa-circle-info text-blue-500"></i>
-          Simpan no. telefon untuk hantar notifikasi WhatsApp kepada guru ganti. Format: <code>0123456789</code> atau <code>60123456789</code>.
+          <i class="fa-solid fa-circle-info text-blue-500"></i> Simpan no. telefon untuk hantar notifikasi WhatsApp kepada guru ganti. Format: <code>0123456789</code> atau <code>60123456789</code>.
         </p>
         <form onsubmit="simpanTelefon(event)" class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
           <div>
@@ -276,15 +284,13 @@
       </div>
       <!-- ===== Tamat Senarai No. Telefon ===== -->
 
-            <!-- ===== Backup & Pemulihan Data ===== -->
+      <!-- ===== Backup & Pemulihan Data ===== -->
       <div class="bg-white rounded-2xl shadow p-5">
         <h3 class="font-bold mb-2">
-          <i class="fa-solid fa-database text-indigo-600 mr-2"></i>
-          Backup & Pemulihan Data
+          <i class="fa-solid fa-database text-indigo-600 mr-2"></i>Backup & Pemulihan Data
         </h3>
         <p class="text-xs text-gray-500 mb-3">
-          <i class="fa-solid fa-circle-info text-blue-500"></i>
-          Muat turun <strong>semua data</strong> (jadual waktu, rekod guru ganti, no. telefon) sebagai fail <code>.json</code>. Simpan fail di tempat selamat (Google Drive / e-mel / pendrive). Jika berlaku kehilangan data, muat naik semula fail ini untuk pulihkan.
+          <i class="fa-solid fa-circle-info text-blue-500"></i> Muat turun <strong>semua data</strong> (jadual waktu, rekod guru ganti, no. telefon) sebagai fail <code>.json</code>. Simpan fail di tempat selamat (Google Drive / e-mel / pendrive). Jika berlaku kehilangan data, muat naik semula fail ini untuk pulihkan.
         </p>
         <div class="flex flex-wrap gap-3">
           <button onclick="muatTurunBackup()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold">
@@ -305,8 +311,7 @@
 
       <div class="bg-white rounded-2xl shadow p-5">
         <h3 class="font-bold mb-2">
-          <i class="fa-solid fa-file-signature text-red-600 mr-2"></i>
-          Jadual Pengesahan Guru Ganti (PDF A4)
+          <i class="fa-solid fa-file-signature text-red-600 mr-2"></i>Jadual Pengesahan Guru Ganti (PDF A4)
         </h3>
         <p class="text-gray-500 text-sm mb-3">
           Jana jadual pengesahan dalam format A4 dengan ruangan tandatangan guru ganti. Pilih tarikh tertentu atau semua tarikh.
@@ -361,8 +366,18 @@
               <option>NORAMA ANAK BUNJOK</option>
             </select>
           </div>
-          <div><label class="block text-sm font-semibold">Hari</label><select id="jadualHari" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Hari --</option><option>Isnin</option><option>Selasa</option><option>Rabu</option><option>Khamis</option><option>Jumaat</option></select></div>
-          <div><label class="block text-sm font-semibold">Slot Masa</label><select id="jadualSlot" class="w-full px-4 py-2.5 rounded-xl border" required><option value="">-- Pilih Slot --</option><option value="7:20-7:50">7:20-7:50</option><option value="7:50-8:20">7:50-8:20</option><option value="8:20-8:50">8:20-8:50</option><option value="8:50-9:20">8:50-9:20</option><option value="9:20-9:50">9:20-9:50</option><option disabled>── Rehat 9:50-10:10 ──</option><option value="10:10-10:40">10:10-10:40</option><option value="10:40-11:10">10:40-11:10</option><option value="11:10-11:40">11:10-11:40</option><option value="11:40-12:10">11:40-12:10</option><option value="12:10-12:40">12:10-12:40</option><option value="12:40-1:10">12:40-1:10</option></select></div>
+          <div>
+            <label class="block text-sm font-semibold">Hari</label>
+            <select id="jadualHari" class="w-full px-4 py-2.5 rounded-xl border" required>
+              <option value="">-- Pilih Hari --</option><option>Isnin</option><option>Selasa</option><option>Rabu</option><option>Khamis</option><option>Jumaat</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold">Slot Masa</label>
+            <select id="jadualSlot" class="w-full px-4 py-2.5 rounded-xl border" required>
+              <option value="">-- Pilih Slot --</option><option value="7:20-7:50">7:20-7:50</option><option value="7:50-8:20">7:50-8:20</option><option value="8:20-8:50">8:20-8:50</option><option value="8:50-9:20">8:50-9:20</option><option value="9:20-9:50">9:20-9:50</option><option disabled>── Rehat 9:50-10:10 ──</option><option value="10:10-10:40">10:10-10:40</option><option value="10:40-11:10">10:40-11:10</option><option value="11:10-11:40">11:10-11:40</option><option value="11:40-12:10">11:40-12:10</option><option value="12:10-12:40">12:10-12:40</option><option value="12:40-1:10">12:40-1:10</option>
+            </select>
+          </div>
           <div>
             <label class="block text-sm font-semibold">Kelas</label>
             <select id="jadualKelas" class="w-full px-4 py-2.5 rounded-xl border" required>
@@ -371,13 +386,16 @@
               <option>Tahun 4</option><option>Tahun 5</option><option>Tahun 6</option>
             </select>
           </div>
-          <div><label class="block text-sm font-semibold">Mata Pelajaran</label><select id="jadualMP" class="w-full px-4 py-2.5 rounded-xl border" required>
-            <option value="">-- Pilih --</option>
-            <option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option>
-            <option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option>
-            <option>Seni Visual</option><option>Muzik</option><option>Sejarah</option>
-            <option>RBT</option><option>TMK</option><option>Bahasa Iban</option>
-          </select></div>
+          <div>
+            <label class="block text-sm font-semibold">Mata Pelajaran</label>
+            <select id="jadualMP" class="w-full px-4 py-2.5 rounded-xl border" required>
+              <option value="">-- Pilih --</option>
+              <option>Bahasa Melayu</option><option>Bahasa Inggeris</option><option>Matematik</option><option>Sains</option>
+              <option>Pendidikan Islam</option><option>Pendidikan Moral</option><option>PJ & Kesihatan</option>
+              <option>Seni Visual</option><option>Muzik</option><option>Sejarah</option>
+              <option>RBT</option><option>TMK</option><option>Bahasa Iban</option>
+            </select>
+          </div>
         </div>
         <div class="mt-5 flex gap-3">
           <button type="submit" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold"><i class="fa-solid fa-floppy-disk"></i> Tambah</button>
@@ -418,10 +436,6 @@
             </button>
           </div>
         </div>
-        <p class="text-xs text-gray-400 mb-3">
-          <i class="fa-solid fa-circle-info text-blue-500"></i>
-          Pilih guru untuk melihat & menyunting jadual beliau sahaja. Butang <i class="fa-solid fa-pen-to-square text-blue-600"></i> untuk edit slot (elak bertindih), <i class="fa-solid fa-trash text-red-500"></i> untuk padam.
-        </p>
 
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
@@ -441,7 +455,7 @@
       </div>
     </div>
 
-       <!-- Penjana Lembaran Kerja AI -->
+    <!-- Penjana Lembaran Kerja AI -->
     <div id="page-penjana" class="page space-y-6">
       <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-file-lines text-purple-600 mr-2"></i>Penjana Lembaran Kerja AI</h2>
       <p class="text-gray-500 text-sm">AI cadang fokus → anda pilih → AI jana lembaran kerja lengkap berdasarkan Tahun & Mata Pelajaran.</p>
@@ -539,12 +553,20 @@
         <div id="ljkHasilContent" class="bg-gray-50 rounded-xl p-4 text-sm border whitespace-pre-wrap font-mono leading-relaxed"></div>
       </div>
     </div>
-       
-  </div>
 
-  <div class="text-center text-xs text-gray-400 py-3 border-t border-gray-200 mt-6">
-  <div class="text-center text-xs text-gray-400 py-3 border-t border-gray-200 mt-6"></div>
- 
+    <!-- Jana RPH -->
+    <div id="page-rph" class="page space-y-6">
+      <h2 class="text-2xl font-extrabold"><i class="fa-solid fa-file-pen text-purple-600 mr-2"></i>Jana RPH Guru Ganti</h2>
+      <p class="text-gray-500 text-sm">AI cadang tajuk mengikut DSKP → anda pilih → AI jana RPH lengkap. Ringkas & pantas.</p>
+
+      <div class="flex gap-2 border-b border-gray-200">
+        <button id="rphTabJana" onclick="tukarTabRPH('jana')" class="px-5 py-2.5 font-semibold text-purple-700 border-b-2 border-purple-600">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Jana RPH
+        </button>
+        <button id="rphTabSejarah" onclick="tukarTabRPH('sejarah')" class="px-5 py-2.5 font-semibold text-gray-500 hover:text-gray-700 border-b-2 border-transparent">
+          <i class="fa-solid fa-clock-rotate-left"></i> Sejarah RPH
+        </button>
+      </div>
 
       <div id="rphPaneJana" class="space-y-4">
         <!-- Konteks tugasan -->
@@ -627,11 +649,11 @@
               <button onclick="simpanRPH()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
             </div>
           </div>
-          <div id="rphHasilContent" class="bg-gray-50 rounded-xl p-4 text-sm border whitespace-pre-wrap font-mono leading-relaxed"></div>
+          <div id="rphHasilContent" class="bg-gray-50 rounded-xl p-4 text-sm border whitespace-pre-wrap font-mono leading-relaxed text-left"></div>
         </div>
       </div>
 
-      <!-- ==== TAB SEJARAH ==== -->
+      <!-- Tab Sejarah -->
       <div id="rphPaneSejarah" class="hidden space-y-4">
         <div class="bg-white rounded-2xl shadow p-5">
           <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
@@ -645,7 +667,10 @@
         </div>
       </div>
     </div>
-    <!-- ===== Tamat Jana RPH ===== -->
+
+  </div>
+
+  <div class="text-center text-xs text-gray-400 py-3 border-t border-gray-200 mt-6">
     <i class="fa-solid fa-shield-halved mr-1"></i> Pihak sekolah tidak bertanggungjawab jika berlaku sebarang kehilangan dan kerosakan kerana penggunaan laman ini.
   </div>
 </main>
@@ -822,7 +847,6 @@ _- Sistem eMMI_`;
     const todayRecs = (data || []).filter(r => normalizeDate(r.tarikh) === today);
     if (!todayRecs.length) return showToast('Tiada tugasan untuk hari ini.', 'error');
 
-    // Kumpulkan ikut guru ganti (1 guru boleh ada banyak slot)
     const byGuru = {};
     todayRecs.forEach(r => {
       if (!byGuru[r.guru_ganti]) byGuru[r.guru_ganti] = [];
@@ -837,7 +861,6 @@ _- Sistem eMMI_`;
     for (const nama of Object.keys(byGuru)) {
       if (!cachedTelefon[nama]) continue;
       const phone = normalizePhone(cachedTelefon[nama]);
-      // Gabungkan semua slot guru dalam satu mesej
       const senaraiSlot = byGuru[nama].map(r =>
         `  • ${r.slot_masa} — ${r.kelas} (${r.mata_pelajaran}) — Ganti: ${r.guru_tak_hadir}`
       ).join('\n');
@@ -856,7 +879,7 @@ _- Sistem eMMI_`;
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
       window.open(url, '_blank');
       count++;
-      await new Promise(res => setTimeout(res, 600)); // elak spam
+      await new Promise(res => setTimeout(res, 600));
     }
     showToast(`📲 ${count} tetingkap WhatsApp dibuka.`, 'success');
   };
@@ -948,7 +971,6 @@ _- Sistem eMMI_`;
     showToast('No. telefon dipadam.', 'success');
   };
 
-  
   // ============================================================
   // BACKUP & PEMULIHAN DATA (JSON)
   // ============================================================
@@ -1042,7 +1064,6 @@ _- Sistem eMMI_`;
         statusEl.innerHTML = '<span class="text-blue-600"><i class="fa-solid fa-spinner fa-spin"></i> Memulihkan data... Sila tunggu.</span>';
         showToast('⏳ Memulihkan data...', 'info');
 
-        // --- 1) Padam semua data sedia ada (dengan operator neq(-1) sebagai trick delete-all) ---
         const d1 = await supabaseClient.from('jadual_waktu').delete().neq('id', -1);
         const d2 = await supabaseClient.from('rekod_guru_ganti').delete().neq('id', -1);
         const d3 = await supabaseClient.from('telefon_guru').delete().neq('id', -1);
@@ -1050,12 +1071,10 @@ _- Sistem eMMI_`;
           console.warn('Padam amaran:', d1.error, d2.error, d3.error);
         }
 
-        // --- 2) Buang 'id' dari backup supaya auto-increment cipta ID baru (elak bentrok) ---
         const cleanJadual = (backup.jadual_waktu || []).map(({ id, ...rest }) => rest);
         const cleanRekod  = (backup.rekod_guru_ganti || []).map(({ id, ...rest }) => rest);
         const cleanTel    = (backup.telefon_guru || []).map(({ id, ...rest }) => rest);
 
-        // --- 3) Insert batch ---
         let errors = [];
 
         if (cleanJadual.length) {
@@ -1078,7 +1097,6 @@ _- Sistem eMMI_`;
           return showToast('⚠️ Pemulihan separa: semak status di atas.', 'error');
         }
 
-        // --- 4) Refresh semua paparan ---
         await muatTelefonGuru();
         await renderTable();
         await renderJadual();
@@ -1124,16 +1142,18 @@ _- Sistem eMMI_`;
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(`page-${page}`).classList.add('active');
     if (window.innerWidth < 1024) closeSidebar();
-       if (page === 'dashboard') { updateDashboard(); renderAnalisisKekerapan(); renderGuruTidakHadirHariIni(); renderTugasanMingguDepan(); }
+    if (page === 'dashboard') { updateDashboard(); renderAnalisisKekerapan(); renderGuruTidakHadirHariIni(); renderTugasanMingguDepan(); }
     else if (page === 'pengurusan') { updateCariGuruDropdown(); renderTable(); refreshPdfTarikhOptions(); muatTelefonGuru(); }
-        else if (page === 'jadual') renderJadual();
+    else if (page === 'jadual') renderJadual();
     else if (page === 'penjana') { muatRekodUntukLJK(); }
-      else if (page === 'rph') { muatRekodUntukRPH(); renderSejarahRPH(); }
+    else if (page === 'rph') { muatRekodUntukRPH(); renderSejarahRPH(); }
   };
+  
   window.toggleSidebar = () => {
     document.getElementById('sidebar').classList.toggle('open');
     document.getElementById('sidebarOverlay').classList.toggle('hidden');
   };
+  
   window.closeSidebar = () => {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.add('hidden');
@@ -1303,12 +1323,18 @@ _- Sistem eMMI_`;
     showToast('Rekod disimpan!', 'success');
   };
 
-   window.padamRekod = async (id) => { if (!supabaseClient) return; await supabaseClient.from('rekod_guru_ganti').delete().eq('id', id); renderTable(); updateDashboard(); refreshPdfTarikhOptions(); renderAnalisisKekerapan(); renderGuruTidakHadirHariIni(); renderTugasanMingguDepan(); };
+  window.padamRekod = async (id) => { 
+    if (!supabaseClient) return; 
+    await supabaseClient.from('rekod_guru_ganti').delete().eq('id', id); 
+    renderTable(); updateDashboard(); refreshPdfTarikhOptions(); renderAnalisisKekerapan(); renderGuruTidakHadirHariIni(); renderTugasanMingguDepan(); 
+  };
+  
   window.resetBorang = () => {
     document.getElementById('formGuruGanti').reset();
     document.getElementById('hariGanti').value = '';
     document.getElementById('guruGanti').innerHTML = '<option value="">-- Pilih Tarikh, Slot & Hari Dahulu --</option>';
   };
+  
   window.eksportCSV = async () => {
     if (!supabaseClient) return;
     const { data } = await supabaseClient.from('rekod_guru_ganti').select('*');
@@ -1409,7 +1435,11 @@ _- Sistem eMMI_`;
     showToast('Jadual ditambah!', 'success');
   };
 
-  window.padamJadual = async (id) => { if (!supabaseClient) return; await supabaseClient.from('jadual_waktu').delete().eq('id', id); renderJadual(); };
+  window.padamJadual = async (id) => { 
+    if (!supabaseClient) return; 
+    await supabaseClient.from('jadual_waktu').delete().eq('id', id); 
+    renderJadual(); 
+  };
 
   window.bukaEditJadual = async (id) => {
     if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
@@ -1699,7 +1729,7 @@ _- Sistem eMMI_`;
     showToast(`Guru ganti ${guruGanti} dipilih untuk ${hari} (${today}). Klik Simpan.`, 'success');
   };
 
-    // ============================================================
+  // ============================================================
   // PENJANA LEMBARAN KERJA AI
   // ============================================================
   let ljkFokusCadangan = [];
@@ -1755,7 +1785,6 @@ _- Sistem eMMI_`;
       const data = await res.json();
       if (data.error) throw new Error(data.error);
 
-      // Cuba parse JSON
       let fokusArr = null;
       if (Array.isArray(data.fokus)) fokusArr = data.fokus;
       else if (Array.isArray(data.tajuk)) fokusArr = data.tajuk;
@@ -1769,7 +1798,7 @@ _- Sistem eMMI_`;
           }
         } catch (_) {}
       }
-      // Fallback: parse baris
+      
       if (!fokusArr) {
         const lines = String(data.hasil || '').split('\n').filter(l => l.trim());
         fokusArr = lines.filter(l => /^\s*\d+\./.test(l)).map(l => {
@@ -1948,6 +1977,7 @@ _- Sistem eMMI_`;
 
   window.salinOutput = () => salinLJK();
   window.muatTurunOutput = () => muatTurunLJKTXT();
+
   // ==================== DASHBOARD ====================
   async function updateDashboard() {
     if (!supabaseClient) return;
@@ -2040,7 +2070,7 @@ _- Sistem eMMI_`;
     }
   }
 
-    // ============================================================
+  // ============================================================
   // GURU TIDAK HADIR HARI INI
   // ============================================================
   async function renderGuruTidakHadirHariIni() {
@@ -2057,7 +2087,6 @@ _- Sistem eMMI_`;
     const dayMap = ['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
     const hariIni = dayMap[new Date().getDay()];
 
-    // Hujung minggu
     if (hariIni === 'Sabtu' || hariIni === 'Ahad') {
       if (counterEl) counterEl.textContent = 'Hujung minggu';
       container.innerHTML = `
@@ -2085,7 +2114,6 @@ _- Sistem eMMI_`;
       return;
     }
 
-    // Kumpulkan mengikut guru tidak hadir
     const grouped = {};
     todayRecords.forEach(r => {
       if (!grouped[r.guru_tak_hadir]) grouped[r.guru_tak_hadir] = [];
@@ -2109,7 +2137,6 @@ _- Sistem eMMI_`;
       const jenisTugasan = recs[0].jenis_tugasan || 'Tidak Dinyatakan';
       const catatan = recs[0].catatan || '';
 
-      // Jadual sebenar guru ini untuk hari ini
       const jadualGuru = (jadual || []).filter(j =>
         j.nama_guru.toLowerCase() === namaTakHadir.toLowerCase() &&
         j.hari === hariIni &&
@@ -2117,7 +2144,6 @@ _- Sistem eMMI_`;
         j.mata_pelajaran !== 'Perhimpunan'
       ).sort((a, b) => slotOrder.indexOf(a.slot_masa) - slotOrder.indexOf(b.slot_masa));
 
-      // Semak setiap slot: ada guru ganti ke tidak?
       const slotStatus = jadualGuru.map(j => {
         const match = recs.find(r => r.slot_masa === j.slot_masa);
         return {
@@ -2128,7 +2154,6 @@ _- Sistem eMMI_`;
         };
       });
 
-      // Slot dari rekod yang mungkin tiada dalam jadual_waktu (extra records)
       recs.forEach(r => {
         if (!slotStatus.some(s => s.slot === r.slot_masa)) {
           slotStatus.push({
@@ -2145,7 +2170,6 @@ _- Sistem eMMI_`;
       const ditugas = slotStatus.filter(s => s.guruGanti).length;
       const belum = total - ditugas;
 
-      // Warna badge jenis tugasan
       const badgeWarna = jenisTugasan === 'Cuti Sakit' ? 'bg-red-100 text-red-700 border-red-300'
                        : jenisTugasan === 'Kursus' ? 'bg-purple-100 text-purple-700 border-purple-300'
                        : jenisTugasan === 'Bengkel' ? 'bg-indigo-100 text-indigo-700 border-indigo-300'
@@ -2211,8 +2235,8 @@ _- Sistem eMMI_`;
     html += '</div>';
     container.innerHTML = html;
   }
-  // ===== Tamat Guru Tidak Hadir Hari Ini =====
-    // ============================================================
+
+  // ============================================================
   // TUGASAN MINGGU DEPAN
   // ============================================================
   async function renderTugasanMingguDepan() {
@@ -2225,7 +2249,6 @@ _- Sistem eMMI_`;
       return;
     }
 
-    // Kira tarikh Isnin & Jumaat minggu depan
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const daysToNextMonday = ((8 - today.getDay()) % 7) || 7;
@@ -2236,7 +2259,6 @@ _- Sistem eMMI_`;
     const nextMondayStr = getLocalDateStr(nextMonday);
     const nextFridayStr = getLocalDateStr(nextFriday);
 
-    // Papar range tarikh
     const fmtShort = (d) => d.toLocaleDateString('ms-MY', { day: '2-digit', month: 'short' });
     if (rangeEl) rangeEl.textContent = `📅 ${fmtShort(nextMonday)} – ${fmtShort(nextFriday)} ${nextFriday.getFullYear()}`;
 
@@ -2260,7 +2282,6 @@ _- Sistem eMMI_`;
 
     if (counterEl) counterEl.textContent = `${records.length} tugas`;
 
-    // Susun ikut tarikh → slot
     const slotOrder = ["7:20-7:50","7:50-8:20","8:20-8:50","8:50-9:20","9:20-9:50",
                        "10:10-10:40","10:40-11:10","11:10-11:40","11:40-12:10",
                        "12:10-12:40","12:40-1:10"];
@@ -2270,7 +2291,6 @@ _- Sistem eMMI_`;
       return slotOrder.indexOf(a.slot_masa) - slotOrder.indexOf(b.slot_masa);
     });
 
-    // Kumpulkan ikut tarikh
     const grouped = {};
     sorted.forEach(r => {
       const k = normalizeDate(r.tarikh);
@@ -2284,7 +2304,6 @@ _- Sistem eMMI_`;
       const hariNama = ['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'][new Date(tarikh + 'T00:00:00').getDay()];
       const tarikhFmt = new Date(tarikh + 'T00:00:00').toLocaleDateString('ms-MY', { day: '2-digit', month: 'long', year: 'numeric' });
 
-      // Kira unik guru ganti
       const guruGantiUnik = [...new Set(recs.map(r => r.guru_ganti))];
 
       html += `
@@ -2340,7 +2359,6 @@ _- Sistem eMMI_`;
     html += '</div>';
     container.innerHTML = html;
   }
-  // ===== Tamat Tugasan Minggu Depan =====
 
   // ==================== ANALISIS KEKERAPAN ====================
   let analisisView = { mode: 'mingguan', offset: 0 };
@@ -2664,7 +2682,7 @@ _- Sistem eMMI_`;
     }
   };
 
-    // ============================================================
+  // ============================================================
   // JANA RPH GURU GANTI
   // ============================================================
   let rphCadangan = [];
@@ -2736,7 +2754,6 @@ _- Sistem eMMI_`;
       const data = await res.json();
       if (data.error) throw new Error(data.error);
 
-      // Cubaan parse JSON dari output AI
       let tajukArr = null;
       if (Array.isArray(data.tajuk)) tajukArr = data.tajuk;
       else {
@@ -2748,7 +2765,6 @@ _- Sistem eMMI_`;
           }
         } catch (_) {}
       }
-      // Fallback: parse baris demi baris
       if (!tajukArr) {
         const lines = String(data.hasil || '').split('\n').filter(l => l.trim());
         tajukArr = lines.filter(l => /^\s*\d+\./.test(l)).map(l => {
@@ -2827,6 +2843,8 @@ _- Sistem eMMI_`;
         tarikh, slot_masa: document.getElementById('rphSlot').value || '',
         nama_guru_ganti: document.getElementById('rphNamaGuruGanti').value || '',
         tahun, mata_pelajaran: mp, tajuk: rphTajukTerpilih.nama,
+        kemahiran: rphTajukTerpilih.kemahiran || '',
+        kod_sk: rphTajukTerpilih.kod_sk || '',
         text: text
       };
       rphEditMode = false;
@@ -2914,7 +2932,7 @@ _- Sistem eMMI_`;
     }
   };
 
-   window.simpanRPH = async () => {
+  window.simpanRPH = async () => {
     if (!rphHasilSemasa) return showToast('Tiada RPH untuk disimpan.', 'error');
     if (!supabaseClient) return showToast('Pangkalan data tidak bersambung.', 'error');
 
@@ -2943,6 +2961,7 @@ _- Sistem eMMI_`;
     const q = (document.getElementById('rphCariSejarah')?.value || '').toLowerCase();
     const { data } = await supabaseClient.from('rph_guru_ganti').select('*').order('id', { ascending: false });
     let filtered = data || [];
+    
     if (q) {
       filtered = filtered.filter(r =>
         (r.tajuk || '').toLowerCase().includes(q) ||
@@ -2951,30 +2970,29 @@ _- Sistem eMMI_`;
         (r.nama_guru_ganti || '').toLowerCase().includes(q)
       );
     }
+    
     if (!filtered.length) {
       list.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Tiada RPH disimpan.</p>';
       return;
     }
-    list.innerHTML = filtered.map(r => {
-      const teks = r.refleksi || '(tiada teks)';
-      return `
-        <div class="border rounded-xl p-4 hover:bg-gray-50">
-          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold">${esc(r.tahun)}</span>
-              <span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded text-xs font-semibold">${esc(r.mata_pelajaran)}</span>
-              <span class="text-xs text-gray-500">${normalizeDate(r.tarikh)} · ${esc(r.slot_masa || '-')}</span>
-            </div>
-            <div class="flex gap-1">
-              <button onclick="lihatRPHSejarah(${r.id})" class="text-blue-600 text-xs px-2 py-1 rounded hover:bg-blue-50"><i class="fa-solid fa-eye"></i> Lihat</button>
-              <button onclick="padamRPHSejarah(${r.id})" class="text-red-500 text-xs px-2 py-1 rounded hover:bg-red-50"><i class="fa-solid fa-trash"></i></button>
-            </div>
+    
+    list.innerHTML = filtered.map(r => `
+      <div class="border rounded-xl p-4 hover:bg-gray-50">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold">${esc(r.tahun)}</span>
+            <span class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded text-xs font-semibold">${esc(r.mata_pelajaran)}</span>
+            <span class="text-xs text-gray-500">${normalizeDate(r.tarikh)} · ${esc(r.slot_masa || '-')}</span>
           </div>
-          <div class="font-semibold text-gray-800 text-sm">${esc(r.tajuk)}</div>
-          <div class="text-xs text-gray-500 mt-1">Guru: ${esc(r.nama_guru_ganti || '-')}</div>
+          <div class="flex gap-1">
+            <button onclick="lihatRPHSejarah(${r.id})" class="text-blue-600 text-xs px-2 py-1 rounded hover:bg-blue-50"><i class="fa-solid fa-eye"></i> Lihat</button>
+            <button onclick="padamRPHSejarah(${r.id})" class="text-red-500 text-xs px-2 py-1 rounded hover:bg-red-50"><i class="fa-solid fa-trash"></i></button>
+          </div>
         </div>
-      `;
-    }).join('');
+        <div class="font-semibold text-gray-800 text-sm">${esc(r.tajuk)}</div>
+        <div class="text-xs text-gray-500 mt-1">Guru: ${esc(r.nama_guru_ganti || '-')} · ${r.masa_minit || 30} minit</div>
+      </div>
+    `).join('');
   };
 
   window.lihatRPHSejarah = async (id) => {
@@ -2987,7 +3005,9 @@ _- Sistem eMMI_`;
       tahun: data.tahun,
       mata_pelajaran: data.mata_pelajaran,
       tajuk: data.tajuk,
-      text: data.refleksi || ''
+      kemahiran: data.kemahiran || '',
+      kod_sk: data.kod_sk || '',
+      text: data.teks_penuh || '(Tiada teks RPH)'
     };
     tukarTabRPH('jana');
     const box = document.getElementById('rphHasilBox');
@@ -3002,9 +3022,6 @@ _- Sistem eMMI_`;
     renderSejarahRPH();
     showToast('RPH dipadam.', 'success');
   };
-
-  // ==== Integrasi navigateTo ====
-  // Nota: anda perlu ubah 1 baris dalam navigateTo sedia ada (lihat Langkah 5)
 
   // Mula
   window.addEventListener('DOMContentLoaded', async () => {
