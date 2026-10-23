@@ -139,7 +139,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-semibold">Nama Guru Tidak Hadir</label>
-            <input type="text" id="guruTakHadir" class="w-full px-4 py-2.5 rounded-xl border" required>
+            <input type="text" id="guruTakHadir" class="w-full px-4 py-2.5 rounded-xl border" required onblur="semakRekodSediaAda()">
           </div>
           <div>
             <label class="block text-sm font-semibold">Tarikh Penggantian <span class="text-red-500">*</span></label>
@@ -765,6 +765,8 @@
   let penjanaCount = parseInt(localStorage.getItem('penjanaCount') || '0');
   let cachedJadual = [];
   let cachedTelefon = {}; // { nama_guru: no_telefon }
+  let lastCheckedGuru = '';
+  let lastCheckedTarikh = '';
 
   // ========== Tarikh waktu tempatan (Malaysia) ==========
   function getLocalDateStr(d = new Date()) {
@@ -1135,6 +1137,39 @@ _- Sistem eMMI_`;
     hariSelect.value = hari;
     showToast(`📅 Tarikh dipilih: ${hari}. Sila pilih slot.`, 'info');
     updateGuruGantiDropdown();
+    semakRekodSediaAda();
+  };
+
+  window.semakRekodSediaAda = async () => {
+    const guru = document.getElementById('guruTakHadir').value.trim();
+    const tarikh = document.getElementById('tarikhGanti').value;
+    if (!guru || !tarikh || !supabaseClient) return;
+
+    if (guru === lastCheckedGuru && tarikh === lastCheckedTarikh) return;
+    lastCheckedGuru = guru;
+    lastCheckedTarikh = tarikh;
+
+    const { data } = await supabaseClient
+      .from('rekod_guru_ganti')
+      .select('jenis_tugasan, catatan')
+      .eq('guru_tak_hadir', guru)
+      .eq('tarikh', tarikh)
+      .limit(1);
+
+    const jenisEl = document.getElementById('jenisTugasan');
+    const catatanEl = document.getElementById('catatan');
+
+    if (data && data.length > 0) {
+      const prev = data[0];
+      jenisEl.value = prev.jenis_tugasan || '';
+      catatanEl.value = prev.catatan || '';
+      if (prev.jenis_tugasan || prev.catatan) {
+        showToast('📋 Jenis Tugasan & Catatan diisi dari rekod sedia ada.', 'info');
+      }
+    } else {
+      jenisEl.value = '';
+      catatanEl.value = '';
+    }
   };
 
   // Navigasi
@@ -1316,9 +1351,13 @@ _- Sistem eMMI_`;
     }]);
     if (error) return showToast('Ralat simpan: ' + error.message, 'error');
 
-    document.getElementById('formGuruGanti').reset();
-    document.getElementById('hariGanti').value = '';
+    // Hanya kosongkan bahagian slot sahaja
+    document.getElementById('slotMasa').value = '';
     document.getElementById('guruGanti').innerHTML = '<option value="">-- Pilih Tarikh, Slot & Hari Dahulu --</option>';
+    document.getElementById('kelas').value = '';
+    document.getElementById('mataPelajaran').value = '';
+    
+    // Tarikh, Guru Tak Hadir, Jenis Tugasan & Catatan dikekalkan
     renderTable(); updateDashboard(); refreshPdfTarikhOptions(); renderAnalisisKekerapan(); renderGuruTidakHadirHariIni(); renderTugasanMingguDepan();
     showToast('Rekod disimpan!', 'success');
   };
@@ -1333,6 +1372,8 @@ _- Sistem eMMI_`;
     document.getElementById('formGuruGanti').reset();
     document.getElementById('hariGanti').value = '';
     document.getElementById('guruGanti').innerHTML = '<option value="">-- Pilih Tarikh, Slot & Hari Dahulu --</option>';
+    lastCheckedGuru = '';
+    lastCheckedTarikh = '';
   };
   
   window.eksportCSV = async () => {
