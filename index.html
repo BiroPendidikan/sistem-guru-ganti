@@ -149,7 +149,7 @@
             <label class="block text-sm font-semibold">Tarikh Penggantian <span class="text-red-500">*</span></label>
             <div class="flex gap-2">
               <input type="date" id="tarikhGanti" class="w-full px-4 py-2.5 rounded-xl border" required onchange="syncHariFromTarikh()">
-              <button type="button" onclick="setMingguDepan()" class="bg-amber-500 hover:bg-amber-600 text-white px-3 rounded-xl text-xs font-semibold whitespace-nowrap" title="Pilih Isnin Minggu Depan">
+              <button type="button" onclick="setMingguDepan()" class="bg-amber-500 hover:bg-amber-600 text-white px-3 rounded-xl text-xs font-semibold whitespace-nowrap" title="Pilih tarikh minggu depan mengikut hari dipilih">
                 <i class="fa-solid fa-calendar-plus"></i> Mgu Depan
               </button>
             </div>
@@ -1159,20 +1159,33 @@ _- Sistem eMMI_`;
   };
 
   window.setMingguDepan = () => {
+    // Dapatkan hari yang sedang dipilih (dari borang atau dari carian)
+    let selectedHari = document.getElementById('hariGanti').value || document.getElementById('cariHari').value;
+    if (!selectedHari) selectedHari = 'Isnin'; // Default jika tiada hari dipilih
+
+    const dayMap = { 'Isnin': 1, 'Selasa': 2, 'Rabu': 3, 'Khamis': 4, 'Jumaat': 5 };
+    const targetDayIndex = dayMap[selectedHari] || 1; // 1=Isnin, 2=Selasa...
+
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const daysToNextMonday = ((8 - today.getDay()) % 7) || 7;
+    
+    // Kira hari ke Isnin minggu hadapan
+    const daysToNextMonday = ((8 - today.getDay()) % 7) || 7; 
     const nextMonday = new Date(today);
     nextMonday.setDate(today.getDate() + daysToNextMonday);
     
-    const y = nextMonday.getFullYear();
-    const m = String(nextMonday.getMonth() + 1).padStart(2, '0');
-    const d = String(nextMonday.getDate()).padStart(2, '0');
+    // Tambah offset mengikut hari yang dipilih (0 untuk Isnin, 1 untuk Selasa...)
+    const targetDate = new Date(nextMonday);
+    targetDate.setDate(nextMonday.getDate() + (targetDayIndex - 1));
+
+    const y = targetDate.getFullYear();
+    const m = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const d = String(targetDate.getDate()).padStart(2, '0');
     
     const dateInput = document.getElementById('tarikhGanti');
     dateInput.value = `${y}-${m}-${d}`;
-    dateInput.dispatchEvent(new Event('change')); // trigger onchange to sync day
-    showToast('📅 Tarikh Isnin Minggu Depan dipilih.', 'info');
+    dateInput.dispatchEvent(new Event('change')); // trigger onchange untuk auto set hari & dropdown
+    showToast(`📅 Tarikh ${selectedHari} Minggu Depan dipilih.`, 'info');
   };
 
   window.semakRekodSediaAda = async () => {
