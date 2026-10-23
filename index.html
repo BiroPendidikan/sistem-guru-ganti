@@ -1750,13 +1750,19 @@ _- Sistem eMMI_`;
     const guru = document.getElementById('cariNamaGuru').value;
     const hari = document.getElementById('cariHari').value;
     if (!guru || !hari) return showToast('Pilih guru dan hari.', 'error');
+    
+    // Ambil tarikh dari borang, jika kosong guna tarikh hari ini
+    const targetDate = document.getElementById('tarikhGanti').value || getLocalDateStr(new Date());
+    
     const { data: jadual } = await supabaseClient.from('jadual_waktu').select('*');
     const slotDiajar = jadual.filter(j => j.nama_guru === guru && j.hari === hari);
     if (!slotDiajar.length) return document.getElementById('hasilCarian').innerHTML = '<p class="text-gray-500">Tiada kelas pada hari ini.</p>';
     const semuaGuru = [...new Set(jadual.map(j => j.nama_guru))].filter(n => n !== guru);
-    const today = getLocalDateStr(new Date());
+    
     const { data: rekodSemua } = await supabaseClient.from('rekod_guru_ganti').select('*');
-    const rekod = (rekodSemua || []).filter(r => normalizeDate(r.tarikh) === today);
+    // Tapis rekod berdasarkan tarikh yang dipilih
+    const rekod = (rekodSemua || []).filter(r => normalizeDate(r.tarikh) === targetDate);
+    
     let html = '';
     slotDiajar.forEach(s => {
       const tersedia = semuaGuru.filter(n => !jadual.some(j => j.nama_guru === n && j.hari === hari && j.slot_masa === s.slot_masa) && !rekod.some(r => r.guru_ganti === n && r.slot_masa === s.slot_masa));
@@ -1784,7 +1790,7 @@ _- Sistem eMMI_`;
                      : g.bilangan <= 4 ? '🟡'
                      : g.bilangan <= 7 ? '🟠'
                      : '🔴';
-          html += `<button onclick="pilihGuruGanti('${guru}','${hari}','${s.slot_masa}','${s.kelas}','${s.mata_pelajaran}','${g.nama}')" class="px-3 py-1.5 ${warna} rounded-lg text-sm font-medium transition" title="${g.bilangan} waktu">${icon} ${g.nama} <span class="font-bold ml-1">(${g.bilangan} waktu)</span></button>`;
+          html += `<button onclick="pilihGuruGanti('${guru}','${hari}','${s.slot_masa}','${s.kelas}','${s.mata_pelajaran}','${g.nama}','${targetDate}')" class="px-3 py-1.5 ${warna} rounded-lg text-sm font-medium transition" title="${g.bilangan} waktu">${icon} ${g.nama} <span class="font-bold ml-1">(${g.bilangan} waktu)</span></button>`;
         });
         html += `</div><p class="text-xs text-gray-500 mt-2"><i class="fa-solid fa-lightbulb text-amber-500"></i> Guru dengan bilangan waktu paling sedikit dipaparkan dahulu. 🟢 0 · 🟡 1-4 · 🟠 5-7 · 🔴 8+</p>`;
       } else { html += '<p class="text-red-500 text-sm">⚠️ Tiada guru tersedia.</p>'; }
@@ -1793,16 +1799,16 @@ _- Sistem eMMI_`;
     document.getElementById('hasilCarian').innerHTML = html;
   };
 
-  window.pilihGuruGanti = (guruTakHadir, hari, slot, kelas, mp, guruGanti) => {
-    const today = getLocalDateStr(new Date());
-    document.getElementById('tarikhGanti').value = today;
+  window.pilihGuruGanti = (guruTakHadir, hari, slot, kelas, mp, guruGanti, tarikhPilih) => {
+    const finalDate = tarikhPilih || document.getElementById('tarikhGanti').value || getLocalDateStr(new Date());
+    document.getElementById('tarikhGanti').value = finalDate;
     document.getElementById('guruTakHadir').value = guruTakHadir;
     document.getElementById('hariGanti').value = hari;
     document.getElementById('slotMasa').value = slot;
     document.getElementById('kelas').value = kelas;
     document.getElementById('mataPelajaran').value = mp;
     updateGuruGantiDropdown().then(() => { document.getElementById('guruGanti').value = guruGanti; });
-    showToast(`Guru ganti ${guruGanti} dipilih untuk ${hari} (${today}). Klik Simpan.`, 'success');
+    showToast(`Guru ganti ${guruGanti} dipilih untuk ${hari} (${finalDate}). Klik Simpan.`, 'success');
   };
 
   // ============================================================
